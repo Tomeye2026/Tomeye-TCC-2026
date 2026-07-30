@@ -53,4 +53,4 @@ Sistema Web PWA, voltado ao ramo agrícola da cultura do tomate. Analisando a pl
 
 ● Link para a Wiki do projeto.
 
-- https://github.com/Gzinetti/TomEye/wiki
+- https://github.com/Tomeye2026/Tomeye-TCC-2026/wiki
