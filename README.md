@@ -14,7 +14,7 @@
 - Gabriel Gonzaga Barbosa
 - Gabriel Mendonça de Godoy
 - Geovana Helena Gonçalves da Cunha
-- Heber dos Santos Chinchet
+- Heber dos Santos Chinchete
 - João Pedro Fogolin Paulelli
 
 ---
