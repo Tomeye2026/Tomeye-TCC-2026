@@ -1,4 +1,4 @@
-<!--  CABEÇALHO -->
+<!-- 🍅 CABEÇALHO -->
 
 <p align="center">
   <img 
@@ -28,13 +28,13 @@
 
 ---
 
-##  Sobre o Projeto
+## Sobre o Projeto
 
 O **TomEye** é um sistema **Web PWA** desenvolvido como projeto de **TCC**, voltado ao setor agrícola e à cultura do tomate.
 
 A plataforma utiliza **Inteligência Artificial e análise de imagens** para auxiliar na identificação de possíveis doenças presentes nas plantas, buscando tornar o processo de monitoramento mais rápido, acessível e eficiente.
 
-### Doenças analisadas
+### 🔎 Doenças analisadas
 
 * 🦠 Septoria
 * 🍂 Requeima
@@ -43,7 +43,7 @@ A plataforma utiliza **Inteligência Artificial e análise de imagens** para aux
 
 ---
 
-## ⚙️ Como funciona
+##  Como funciona
 
 <div align="center">
 
@@ -132,7 +132,7 @@ Ensino Médio com Habilitação Profissional de Técnico em Desenvolvimento de S
 
 ---
 
-## 🎯 Objetivo
+## Objetivo
 
 O principal objetivo do **TomEye** é explorar o uso da tecnologia como ferramenta de apoio ao produtor agrícola, utilizando **Inteligência Artificial para análise de imagens de plantas**.
 
@@ -142,7 +142,7 @@ A proposta busca aproximar soluções tecnológicas do setor agrícola e demonst
 
 <div align="center">
 
-### 🍅 TomEye
+### TomEye
 
 **Tecnologia + Inteligência Artificial + Agricultura**
 
@@ -152,5 +152,7 @@ Desenvolvido como projeto de TCC
 **MTEC — Desenvolvimento de Sistemas**
 
 <br>
+
+⭐ Se este projeto foi útil ou interessante para você, considere deixar uma estrela no repositório!
 
 </div>
