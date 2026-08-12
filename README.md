@@ -1,4 +1,13 @@
-# 🍅 TomEye
+<!--  CABEÇALHO -->
+
+<p align="center">
+  <img 
+    src="https://capsule-render.vercel.app/api?type=waving&color=E53935&height=230&section=header&text=Gabriel%20Gonzaga&fontSize=52&fontColor=ffffff&fontAlignY=40&animation=fadeIn" 
+    width="100%"
+  />
+</p>
+
+# TomEye
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-em%20teste-orange?style=for-the-badge" alt="Status">
@@ -13,23 +22,22 @@
 
 <p align="center">
   <a href="https://tom-eye-tcc.netlify.app">
-    <strong>🌐 Acessar Protótipo</strong>
+    <strong> Acessar Protótipo</strong>
   </a>
 </p>
 
 ---
 
-## 📌 Sobre o Projeto
+##  Sobre o Projeto
 
 O **TomEye** é um sistema **Web PWA** desenvolvido como projeto de **TCC**, voltado ao setor agrícola e à cultura do tomate.
 
 A plataforma utiliza **Inteligência Artificial e análise de imagens** para auxiliar na identificação de possíveis doenças presentes nas plantas, buscando tornar o processo de monitoramento mais rápido, acessível e eficiente.
 
-### 🔎 Doenças analisadas
+### Doenças analisadas
 
 * 🦠 Septoria
 * 🍂 Requeima
-* 🌿 Mofo das folhas
 * 🧬 Vírus do Enrolamento Amarelo
 * 🦠 Mancha bacteriana
 
@@ -53,9 +61,7 @@ O usuário fornece uma imagem da planta e o sistema realiza uma análise utiliza
 
 ---
 
-## 🛠️ Tecnologias
-
-<div align="center">
+## Tecnologias
 
 |        Tecnologia        | Utilização                                              |
 | :----------------------: | :------------------------------------------------------ |
@@ -64,8 +70,6 @@ O usuário fornece uma imagem da planta e o sistema realiza uma análise utiliza
 |     ⚡ **JavaScript**     | Lógica e funcionalidades                                |
 |        🎨 **CSS**        | Interface e estilização                                 |
 |        📱 **PWA**        | Experiência de aplicação Web                            |
-
-</div>
 
 ---
 
@@ -100,7 +104,7 @@ O projeto encontra-se atualmente em fase de testes e aprimoramentos, buscando me
 
 ---
 
-## 🎓 Formação Acadêmica
+## Formação Acadêmica
 
 **Desenvolvimento de Sistemas — MTEC 3º DS Noturno**
 
@@ -114,7 +118,7 @@ Ensino Médio com Habilitação Profissional de Técnico em Desenvolvimento de S
 
 ---
 
-## 🌐 Protótipo
+## Protótipo
 
 <p align="center">
 
@@ -148,7 +152,5 @@ Desenvolvido como projeto de TCC
 **MTEC — Desenvolvimento de Sistemas**
 
 <br>
-
-⭐ Se este projeto foi útil ou interessante para você, considere deixar uma estrela no repositório!
 
 </div>
