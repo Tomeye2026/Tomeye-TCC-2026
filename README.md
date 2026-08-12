@@ -2,7 +2,7 @@
 
 <p align="center">
   <img 
-    src="https://capsule-render.vercel.app/api?type=waving&color=E53935&height=230&section=header&text=Gabriel%20Gonzaga&fontSize=52&fontColor=ffffff&fontAlignY=40&animation=fadeIn" 
+    src="https://capsule-render.vercel.app/api?type=waving&color=E53935&height=230&section=header&text=Tom%20Eye&fontSize=52&fontColor=ffffff&fontAlignY=40&animation=fadeIn" 
     width="100%"
   />
 </p>
