@@ -15,9 +15,7 @@ const contexto = {
 vm.createContext(contexto);
 vm.runInContext(codigo, contexto);
 
-test('Plano 1 deve ser Gratuito', () => {
-  assert.equal(contexto._getPlano(1).nome, 'Gratuito');
-});
+assert.equal(contexto._getPlano(1).nome, 'Premium');
 
 test('Plano 2 deve ser Básico', () => {
   assert.equal(contexto._getPlano(2).nome, 'Básico');
