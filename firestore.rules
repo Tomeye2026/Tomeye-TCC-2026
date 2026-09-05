@@ -1,0 +1,147 @@
+rules_version = '2';
+
+// ============================================================
+// TomEye — Firestore Security Rules
+//
+// Princípios:
+// 1. Cada usuário só acessa seus próprios dados
+// 2. Fazendas: o usuario_id na fazenda DEVE ser o uid do auth
+// 3. Assinaturas: leitura e atualização pelo dono (necessário
+//    para contratação de plano e incremento de uso)
+// 4. Análises: só o dono pode criar e ler
+// 5. plano_id no documento de USUARIO não pode ser alterado
+//    diretamente pelo próprio usuário (é atualizado via
+//    contratarPlano que altera na coleção assinaturas)
+// 
+// NOTA: Estas regras não verificam limites de plano (ex: max fazendas),
+// pois Security Rules não suportam agregações entre coleções.
+// A validação de limites é feita na camada de API (FazendasAPI.criar()).
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── USUÁRIOS ─────────────────────────────────────────
+    // Cada usuário pode ler e editar apenas seu próprio documento.
+    // Criação é permitida (necessária no cadastro).
+    // plano_id não pode ser alterado pelo próprio usuário
+    // (prevenção contra manipulação via DevTools).
+    match /usuarios/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Leitura pública controlada — necessária para login por CPF/CNPJ
+      // e para recuperação de senha (AuthAPI.buscarPerguntaSeguranca),
+      // que acontecem ANTES do usuário estar autenticado.
+      // Só permite acesso a contas ativas.
+      // IMPORTANTE: para queries (.where().get()), o Firestore só valida
+      // esta condição se a própria query já incluir .where('ativo','==',true)
+      // no código (api.js) — sem isso, a query inteira é negada mesmo que
+      // o documento real tenha ativo == true.
+      allow read: if resource.data.ativo == true;
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if isAdmin()
+        || (request.auth != null && request.auth.uid == userId
+            // Não permitir alteração de plano_id pelo próprio usuário
+            && request.resource.data.plano_id == resource.data.plano_id);
+      allow delete: if false; // Soft delete via campo 'ativo'
+    }
+
+    // ── FAZENDAS ─────────────────────────────────────────
+    // Apenas o dono pode ler, criar, editar e excluir fazendas.
+    // Na criação, o usuario_id DEVE ser o uid do usuário autenticado.
+    // NOTA: A verificação de limites de fazendas (max_fazendas do plano)
+    // é feita na API (FazendasAPI.criar()) pois Security Rules
+    // não suportam contagens entre coleções.
+    match /fazendas/{fazendaId} {
+      allow read: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.usuario_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid
+        // Não permitir alterar o dono da fazenda
+        && request.resource.data.usuario_id == resource.data.usuario_id;
+      allow delete: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+    }
+
+    // ── ASSINATURAS ──────────────────────────────────────
+    // Cada usuário pode ler sua assinatura.
+    // Criação é permitida (necessária no cadastro).
+    // Atualizações são permitidas pelo dono (necessário para
+    // contratação de plano e incremento de analises_utilizadas).
+    // O usuario_id nunca pode ser alterado.
+    match /assinaturas/{assinaturaId} {
+      allow read: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.usuario_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid
+        // Não permitir alterar o dono da assinatura
+        && request.resource.data.usuario_id == resource.data.usuario_id;
+      allow delete: if false;
+    }
+
+    // ── ANÁLISES ─────────────────────────────────────────
+    // Apenas o dono pode ler, criar e excluir suas análises.
+    match /analises/{analiseId} {
+      allow read: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.usuario_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow delete: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+    }
+
+    // ── FUNCIONÁRIOS ─────────────────────────────────────
+    // Apenas o empregador pode gerenciar funcionários.
+    match /funcionarios/{funcId} {
+      allow read: if request.auth != null
+        && resource.data.empresa_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.empresa_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.empresa_id == request.auth.uid;
+      allow delete: if request.auth != null
+        && resource.data.empresa_id == request.auth.uid;
+    }
+
+    // ── NOTIFICAÇÕES ─────────────────────────────────────
+    match /notificacoes/{notifId} {
+      allow read: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.usuario_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+      allow delete: if request.auth != null
+        && resource.data.usuario_id == request.auth.uid;
+    }
+
+    // ── DOENÇAS (referência) ─────────────────────────────
+    // Leitura pública para todos os autenticados.
+    // Escrita apenas para admin.
+    match /doencas/{doencaId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // ── CONFIGURAÇÕES ────────────────────────────────────
+    // Leitura pública para todos os autenticados.
+    // Escrita apenas para admin.
+    match /configuracoes/{configId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // ── HELPER: verificar se é admin ─────────────────────
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.tipo == 'admin';
+    }
+  }
+}

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description"
+    content="Tomeye — Relatório completo do diagnóstico agrícola com resultado da doença, nível de confiança da IA, informações e recomendações de tratamento.">
+  <title>Relatório — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/relatorio.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Relatório</h1>
+      <button class="page-header-action" id="btn-compartilhar">Compartilhar</button>
+    </header>
+
+    <main class="main-content">
+
+      <!-- ── Imagem analisada (RF5/RF6) ── -->
+      <section class="section">
+        <div class="image-preview-container" id="relatorio-imagem-container" style="position:relative;">
+          <div class="image-preview-placeholder">
+            <span class="placeholder-icon"><span class="material-symbols-rounded">biotech</span></span>
+            <span>Imagem não disponível</span>
+          </div>
+          <button class="img-delete-btn hidden" id="btn-excluir-imagem" title="Excluir imagem desta análise"
+            aria-label="Excluir imagem">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Diagnóstico principal (RF10) ── -->
+      <section class="section" style="padding-bottom: 0;">
+        <h2 id="relatorio-doenca-nome" style="font-size: var(--font-size-xl); margin-bottom: var(--space-xs);">
+          Carregando...
+        </h2>
+        <p id="relatorio-doenca-agente"
+          style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-md);">—</p>
+      </section>
+
+      <!-- ── Confiança da IA — gráfico de anel (RF14) ── -->
+      <section class="section" style="padding-top: 0;">
+        <div class="confidence-card" id="confidence-card">
+          <span class="confidence-card-title">Confiança da IA</span>
+
+          <!-- Anel animado -->
+          <div class="conf-ring-wrap">
+            <svg class="conf-ring-svg" viewBox="0 0 100 100" width="120" height="120">
+              <circle class="conf-ring-track" cx="50" cy="50" r="45" />
+              <circle class="conf-ring-fill" id="confidence-ring" cx="50" cy="50" r="45" />
+            </svg>
+            <div class="conf-ring-center">
+              <span class="conf-pct" id="confidence-value">—</span>
+              <span class="conf-pct-label">precisão</span>
+            </div>
+          </div>
+
+          <!-- Badge verbal -->
+          <span class="conf-badge conf-badge-media" id="confidence-label-badge">Calculando…</span>
+
+          <!-- Barra de precisão -->
+          <div class="conf-bar-wrap">
+            <div class="conf-bar-header">
+              <span class="conf-bar-label">Nível de precisão</span>
+              <span class="conf-bar-pct" id="confidence-pct-label">0%</span>
+            </div>
+            <div class="conf-bar-track">
+              <div class="conf-bar-fill" id="confidence-bar"></div>
+            </div>
+            <span class="conf-desc" id="confidence-label"></span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Informações sobre a doença (RF12) ── -->
+      <section class="report-section" id="section-doenca-info">
+        <h3 class="report-section-title"><span class="material-symbols-rounded"
+            style="vertical-align:middle;font-size:20px;">coronavirus</span> Sobre a doença identificada</h3>
+
+        <div class="info-box" id="box-descricao" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">description</span> Descrição</div>
+          <p class="info-box-body" id="relatorio-descricao"></p>
+        </div>
+
+        <div class="info-box warning" id="box-causas" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">science</span> Causas prováveis</div>
+          <p class="info-box-body" id="relatorio-causas"></p>
+        </div>
+
+        <div class="info-box" id="box-sintomas" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">search</span> Sintomas típicos</div>
+          <ul id="relatorio-sintomas"
+            style="margin:0;padding-left:1.2rem;font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7;">
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── Recomendações de tratamento (RF13) ── -->
+      <section class="report-section" id="section-tratamento">
+        <h3 class="report-section-title"><span class="material-symbols-rounded"
+            style="vertical-align:middle;font-size:20px;">medication</span> Recomendações de tratamento</h3>
+
+        <div class="info-box success" id="box-tratamento" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">healing</span> Como tratar</div>
+          <p class="info-box-body" id="relatorio-tratamento"></p>
+        </div>
+
+        <div class="info-box success" id="box-prevencao" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">shield</span> Prevenção</div>
+          <p class="info-box-body" id="relatorio-prevencao"></p>
+        </div>
+
+        <div class="info-box" id="box-recomendacoes" style="display:none;">
+          <div class="info-box-title"><span class="material-symbols-rounded"
+              style="vertical-align:middle;font-size:16px;">push_pin</span> Recomendações de manejo</div>
+          <ul id="relatorio-recomendacoes"
+            style="margin:0;padding-left:1.2rem;font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.7;">
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── Análise do Sistema Especialista (fallback) ── -->
+      <section class="report-section" id="section-gemini">
+        <h3 class="report-section-title"><span class="material-symbols-rounded"
+            style="vertical-align:middle;font-size:20px;">smart_toy</span> Análise do Sistema Especialista</h3>
+        <div id="relatorio-gemini" style="line-height:1.7; font-size:var(--font-size-sm); padding: var(--space-sm) 0;">
+          <div class="spinner spinner-dark spinner-sm"></div>
+        </div>
+      </section>
+
+      <!-- ── Ações (RF7/RF11) ── -->
+      <section class="section">
+        <div class="flex flex-col gap-sm">
+          <button class="btn btn-primary btn-full" id="btn-salvar-historico">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">bookmark</span> Salvar
+            no histórico
+          </button>
+          <a href="historico.html" class="btn btn-secondary btn-full" id="link-ver-historico">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">bar_chart</span> Ver
+            histórico de análises
+          </a>
+          <a href="analise.html" class="btn btn-ghost btn-full">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">photo_camera</span>
+            Nova análise
+          </a>
+          <a href="dashboard.html" class="btn btn-ghost btn-full">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">home</span> Voltar ao
+            início
+          </a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Firebase SDK — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/filtros.js"></script>
+  <script defer src="../js/ia-local.js"></script>
+  <script defer src="../js/analises.js"></script>
+
+  <script>
+    function _initRelatorio() {
+      if (typeof Analises !== 'undefined' && Analises.initRelatorio) {
+        Analises.initRelatorio();
+      } else {
+        // Retry: scripts defer ainda não carregaram
+        setTimeout(_initRelatorio, 100);
+      }
+    }
+    window.addEventListener('load', _initRelatorio);
+    // Fallback: DOMContentLoaded pode disparar antes de load
+    if (document.readyState === 'complete') {
+      _initRelatorio();
+    }
+
+    /* ══════════════════════════════════════════
+       Observer: atualiza gráfico de confiança
+       quando confidence-value é preenchido (RF14)
+    ══════════════════════════════════════════ */
+    const _confObserver = new MutationObserver(() => {
+      const valorEl = document.getElementById('confidence-value');
+      if (!valorEl || valorEl.textContent === '—' || valorEl.textContent === '') return;
+
+      const pct = parseInt(valorEl.textContent);
+      if (isNaN(pct)) return;
+
+      _confObserver.disconnect();
+
+      // Determinar faixa de qualidade
+      const isAlta = pct >= 85;
+      const isMedia = pct >= 60 && pct < 85;
+      // else baixa
+
+      setTimeout(() => {
+
+        /* ── Anel SVG ──
+           Circunferência = 2π × r = 2π × 45 ≈ 282.7
+           stroke-dashoffset = circunf × (1 - pct/100)
+        */
+        const CIRCUNF = 2 * Math.PI * 45; // ≈ 282.74
+        const ringEl = document.getElementById('confidence-ring');
+        if (ringEl) {
+          const offset = CIRCUNF * (1 - pct / 100);
+          ringEl.style.strokeDasharray = CIRCUNF;
+          ringEl.style.strokeDashoffset = offset;
+          ringEl.style.stroke = isAlta ? '#16a34a' : isMedia ? '#d97706' : '#dc2626';
+        }
+
+        /* ── Barra de precisão ── */
+        const barEl = document.getElementById('confidence-bar');
+        const pctLbl = document.getElementById('confidence-pct-label');
+        const descEl = document.getElementById('confidence-label');
+
+        if (barEl) {
+          barEl.style.width = pct + '%';
+          barEl.classList.remove('color-alta', 'color-media', 'color-baixa');
+          barEl.classList.add(isAlta ? 'color-alta' : isMedia ? 'color-media' : 'color-baixa');
+        }
+        if (pctLbl) pctLbl.textContent = pct + '%';
+        if (descEl) {
+          descEl.textContent = isAlta ? 'Alta precisão — resultado confiável'
+            : isMedia ? 'Precisão moderada — confirme com agrônomo'
+              : 'Precisão baixa — recomendamos nova análise';
+        }
+
+        /* ── Badge verbal ── */
+        const badgeEl = document.getElementById('confidence-label-badge');
+        if (badgeEl) {
+          badgeEl.className = 'conf-badge ' + (isAlta ? 'conf-badge-alta' : isMedia ? 'conf-badge-media' : 'conf-badge-baixa');
+          badgeEl.innerHTML = (isAlta
+            ? '<span class="material-symbols-rounded" style="font-size:14px">verified</span> Alta confiança'
+            : isMedia
+              ? '<span class="material-symbols-rounded" style="font-size:14px">info</span> Confiança moderada'
+              : '<span class="material-symbols-rounded" style="font-size:14px">warning</span> Baixa confiança');
+        }
+
+        /* ── Borda do card ── */
+        const cardEl = document.getElementById('confidence-card');
+        if (cardEl) {
+          cardEl.style.borderTop = `3px solid ${isAlta ? '#16a34a' : isMedia ? '#d97706' : '#dc2626'}`;
+        }
+
+      }, 350);
+    });
+
+    const targetEl = document.getElementById('confidence-value') || document.body;
+    _confObserver.observe(targetEl, { childList: true, subtree: true, characterData: true });
+
+    /* ══════════════════════════════════════════
+       Observer: gravidade — preenche o card
+    ══════════════════════════════════════════ */
+    const _gravObserver = new MutationObserver(() => {
+      const gravEl = document.getElementById('relatorio-gravidade');
+      if (!gravEl || !gravEl.textContent.trim() || gravEl.textContent === '—') return;
+      _gravObserver.disconnect();
+
+      const gravText = gravEl.querySelector('.badge')?.textContent?.trim()
+        || gravEl.textContent.trim();
+
+      const gravCard = document.getElementById('gravity-card');
+      const gravIconWrap = document.getElementById('gravity-icon-wrap');
+      const gravValueText = document.getElementById('relatorio-gravidade-text');
+
+      if (!gravCard) return;
+      gravCard.style.display = 'flex';
+
+      if (gravValueText) gravValueText.textContent = gravText;
+
+      const configs = {
+        'Grave': { bg: 'rgba(220,38,38,0.1)', color: '#dc2626', icon: 'crisis_alert' },
+        'Moderada': { bg: 'rgba(217,119,6,0.1)', color: '#d97706', icon: 'warning' },
+        'Leve': { bg: 'rgba(22,163,74,0.1)', color: '#16a34a', icon: 'check_circle' },
+        'Nenhuma': { bg: 'rgba(37,99,235,0.1)', color: '#2563eb', icon: 'eco' },
+      };
+      const cfg = configs[gravText] || configs['Leve'];
+
+      if (gravIconWrap) {
+        gravIconWrap.style.background = cfg.bg;
+        gravIconWrap.querySelector('.material-symbols-rounded').textContent = cfg.icon;
+        gravIconWrap.querySelector('.material-symbols-rounded').style.color = cfg.color;
+      }
+      if (gravValueText) gravValueText.style.color = cfg.color;
+    });
+
+    const gravTarget = document.getElementById('relatorio-gravidade') || document.body;
+    _gravObserver.observe(gravTarget, { childList: true, subtree: true, characterData: true });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,563 @@
+﻿/**
+ * Tomeye — admin.css
+ * Estilos exclusivos do painel administrativo (admin.html).
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *  1. Base (body)
+ *  2. Header do admin
+ *  3. Tabs de navegação
+ *  4. Painéis e animação fadeIn
+ *  5. Grid de KPIs
+ *  6. Blocos brancos e cabeçalhos de bloco
+ *  7. Linhas de dados (finanças, usuários, planos, doenças)
+ *  8. Usuários (avatar, info, pills de plano)
+ *  9. Cards de doenças
+ * 10. Botões (vermelho, ícone limpo)
+ * 11. Barra de progresso
+ * 12. Modal limpo (backdrop, inputs, labels, ações)
+ */
+/* ══════════════════════════════════════════════════
+   ADMIN PANEL — DESIGN LIMPO (BRANCO & VERMELHO)
+   ══════════════════════════════════════════════════ */
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Header */
+.admin-header {
+  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.25);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-back-btn,
+.btn-refresh-admin {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-back-btn:hover,
+.btn-refresh-admin:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.admin-header-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.admin-header-title span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.admin-badge-online {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.admin-badge-online::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+/* Tabs de Navegação */
+.admin-tabs-wrap {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 6px 16px 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-tabs-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.admin-tab-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.admin-tab-btn:hover {
+  color: #e53935;
+}
+
+.admin-tab-btn.active {
+  color: #e53935;
+  border-bottom-color: #e53935;
+  font-weight: 700;
+}
+
+/* Paineis e Layout */
+.admin-panel {
+  padding: 16px;
+  animation: fadeIn 0.25s ease;
+}
+
+.admin-panel.hidden,
+.hidden {
+  display: none !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Grid de KPIs */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kpi-accent, #e53935);
+}
+
+.kpi-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #e53935;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.kpi-icon-wrap .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Cards e Blocos Brancos */
+.admin-block {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.admin-block-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-block-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-block-title .material-symbols-rounded {
+  font-size: 18px;
+  color: #e53935;
+}
+
+.admin-block-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e53935;
+  background: #fff0f0;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* Linhas Financeiras e de Usuários */
+.finance-row,
+.user-table-row,
+.plan-bar-row,
+.doenca-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+}
+
+.finance-row:last-child,
+.user-table-row:last-child,
+.plan-bar-row:last-child,
+.doenca-stat-row:last-child {
+  border-bottom: none;
+}
+
+.finance-row-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+}
+
+.finance-row-value {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.finance-row-value.positive {
+  color: #16a34a;
+}
+
+.finance-row-value.negative {
+  color: #dc2626;
+}
+
+.finance-row-value.neutral {
+  color: #0f172a;
+}
+
+/* Usuários */
+.user-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e53935;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+  margin: 0 12px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.user-email {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.plan-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pill-free {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.pill-avancado {
+  background: #fff0f0;
+  color: #e53935;
+}
+
+.pill-premium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.pill-empresa {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Cards de Doenças */
+.doenca-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.doenca-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.doenca-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #e53935;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doenca-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.doenca-card-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Botões */
+.btn-admin-red {
+  background: #e53935;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.btn-admin-red:hover {
+  background: #d32f2f;
+}
+
+.btn-icon-clean {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon-clean:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-icon-clean.danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Barra de Progresso */
+.progress-track {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+/* Modal Limpo */
+.clean-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.clean-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.clean-modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.clean-modal-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.clean-input {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  box-sizing: border-box;
+  font-family: inherit;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.clean-input:focus {
+  outline: none;
+  border-color: #e53935;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.15);
+}
+
+.clean-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.clean-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}

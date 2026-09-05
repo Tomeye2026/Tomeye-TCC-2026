@@ -1,0 +1,27 @@
+{
+  "name": "Tomeye - Diagnóstico Agrícola",
+  "short_name": "Tomeye",
+  "description": "Sistema inteligente de diagnóstico de doenças em culturas agrícolas por inteligência artificial.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#1a7a4a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/imagens/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/imagens/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "agriculture",
+    "productivity"
+  ],
+  "lang": "pt-BR"
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Capture ou selecione uma imagem para diagnóstico agrícola.">
+  <title>Nova Análise — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Nova Análise</h1>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Fazenda selecionada -->
+      <section class="section">
+        <div class="card" style="padding: var(--space-md);">
+          <div class="flex items-center gap-sm">
+            <span class="material-symbols-rounded" style="font-size:20px">grass</span>
+            <div style="flex:1;">
+              <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Fazenda selecionada</div>
+              <div class="font-semibold" id="analise-fazenda-nome">Carregando...</div>
+            </div>
+            <a href="fazendas.html" class="btn btn-ghost btn-sm">Trocar</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pré-visualização da imagem -->
+      <section class="section">
+        <div class="image-preview-container" id="image-preview-container">
+          <div class="image-preview-placeholder" id="image-placeholder">
+            <span class="placeholder-icon"><span class="material-symbols-rounded">photo_camera</span></span>
+            <span>Nenhuma imagem selecionada</span>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Use a câmera ou galeria abaixo</span>
+          </div>
+          <img id="image-preview" src="" alt="Pré-visualização" class="hidden">
+        </div>
+      </section>
+
+      <!-- Botões de captura -->
+      <section class="section">
+        <div class="flex flex-col gap-sm">
+          <!-- Abrir câmera -->
+          <button class="btn btn-primary btn-full" id="btn-camera">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">photo_camera</span> Abrir Câmera
+          </button>
+          <input type="file" id="input-camera" accept="image/*" capture="environment" class="hidden">
+
+          <!-- Selecionar da galeria -->
+          <button class="btn btn-secondary btn-full" id="btn-galeria">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">image</span> Selecionar da Galeria
+          </button>
+          <input type="file" id="input-galeria" accept="image/*" class="hidden">
+
+          <!-- Botão de remover imagem (oculto) -->
+          <button class="btn btn-ghost btn-full hidden" id="btn-remover-imagem" style="color: var(--color-error);">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">close</span> Remover imagem
+          </button>
+        </div>
+      </section>
+
+      <!-- Botão de envio (oculto até ter imagem) -->
+      <section class="section hidden" id="section-enviar">
+        <div class="divider"></div>
+        <button class="btn btn-primary btn-full btn-lg" id="btn-enviar-analise">
+          <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">biotech</span> Confirmar e Enviar para Análise
+        </button>
+        <p class="text-center mt-sm" style="font-size: var(--font-size-xs); color: var(--text-muted);">
+          A imagem será enviada para análise por IA
+        </p>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/filtros.js"></script>
+  <script defer src="../js/ia-local.js"></script>
+  <script defer src="../js/analises.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Analises.initCaptura();
+    });
+  </script>
+</body>
+</html>

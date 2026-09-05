@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Gerencie seu perfil e dados pessoais.">
+  <title>Perfil — Tomeye</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Meu Perfil</h1>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Avatar e nome -->
+      <div class="text-center mb-lg">
+        <div class="avatar avatar-lg" id="perfil-avatar"
+          style="margin: 0 auto var(--space-md); cursor: pointer; position: relative; overflow: hidden; background-size: cover; background-position: center;"
+          title="Alterar foto de perfil">
+          <span id="perfil-avatar-initials" style="font-size: 24px;"></span>
+          <div
+            style="position: absolute; bottom: -2px; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 2px 0; text-align: center; font-size: 10px; font-weight: bold;">
+            EDITAR
+          </div>
+        </div>
+        <input type="file" id="perfil-foto-input" accept="image/*" class="hidden">
+        <h2 id="perfil-nome-display" style="font-size: var(--font-size-lg);">...</h2>
+        <span class="badge badge-primary mt-sm" id="perfil-plano-badge">Carregando...</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Botão Alterar Perfil -->
+      <section class="section" style="padding-top: 0; padding-bottom: 0;">
+        <button class="btn btn-secondary btn-full" id="btn-alterar-perfil" style="gap: 6px;">
+          <span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">edit</span>
+          Alterar Perfil
+        </button>
+      </section>
+
+
+      <div class="divider"></div>
+
+      <!-- Informaes do plano -->
+      <section class="section">
+        <h3 class="section-title">Meu plano</h3>
+        <div class="card" id="perfil-plano-card">
+          <div class="card-body">
+            <div class="spinner spinner-dark spinner-sm" style="margin:0 auto;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logout -->
+      <section class="section">
+        <button class="btn btn-ghost btn-full" id="btn-logout" style="color: var(--color-error);">
+          <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">logout</span> Sair da
+          conta
+        </button>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- Zona de perigo -->
+      <section class="section">
+        <h3 class="section-title" style="color: var(--color-error);"><span class="material-symbols-rounded"
+            style="vertical-align:middle;font-size:18px;">warning</span> Zona de perigo</h3>
+        <div class="card" style="border: 1px solid var(--color-error); padding: var(--space-md);">
+          <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-md);">
+            Este ato é irreversível. Todos os seus dados, análises, fazendas e configurações serão permanentemente
+            excluídos.
+          </p>
+          <button class="btn btn-full" id="btn-excluir-conta"
+            style="background: var(--color-error); color: white; border: none;">
+            <span class="material-symbols-rounded" style="vertical-align:middle;font-size:18px;">delete_forever</span>
+            Excluir minha conta
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/perfil.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => Perfil.init());
+  </script>
+</body>
+
+</html>

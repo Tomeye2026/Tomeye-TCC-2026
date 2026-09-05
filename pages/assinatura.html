@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Planos e assinaturas para diagnóstico agrícola.">
+  <title>Assinatura — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Assinatura</h1>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Toggle Mensal / Anual -->
+      <section class="section text-center">
+        <div style="display:inline-flex; background: var(--bg-base); border-radius: var(--border-radius-full); padding: 4px; gap: 4px;">
+          <button class="btn btn-sm" id="toggle-mensal" style="border-radius: var(--border-radius-full);">Mensal</button>
+          <button class="btn btn-sm" id="toggle-anual" style="border-radius: var(--border-radius-full);">Anual <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">savings</span> -20%</button>
+        </div>
+      </section>
+
+      <!-- Plano atual -->
+      <section class="section">
+        <div class="card" id="plano-atual-card">
+          <div class="spinner spinner-dark spinner-sm" style="margin: 0 auto;"></div>
+        </div>
+      </section>
+
+      <!-- Lista de planos -->
+      <section class="section">
+        <h2 class="section-title">Planos disponíveis</h2>
+        <div id="planos-list">
+          <div class="empty-state">
+            <div class="spinner spinner-dark spinner-sm"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/assinaturas.js"></script>
+  <script>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => Assinaturas.init());
+    } else {
+      Assinaturas.init();
+    }
+  </script>
+</body>
+</html>

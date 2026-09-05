@@ -1,0 +1,404 @@
+﻿/**
+ * Tomeye — termos.css
+ * Estilos exclusivos da página de Termos de Uso (Termos de Uso.html).
+ * Tipografia editorial estilo documento impresso.
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *   1. Variáveis de cor e tipografia (:root)
+ *   2. Reset (box-sizing)
+ *   3. Base (html, body, ::selection)
+ *   4. Folha de papel (.sheet) e responsividade mobile
+ *   5. Masthead (logo, kicker, h1, subtítulo, metadados)
+ *   6. Preâmbulo (bloco destacado)
+ *   7. Sumário / Table of Contents (.toc)
+ *   8. Seções de artigo (h2, parágrafos, listas, tabelas)
+ *   9. Tabelas (.plans, .law-table)
+ *  10. Notas de rodapé e bloco de assinatura
+ *  11. Acessibilidade (:focus-visible)
+ *  12. Impressão (@media print)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --paper: #FCFBF8;
+  --ink: #1C1B18;
+  --ink-soft: #55524B;
+  --line: #D8D3C7;
+  --line-strong: #B9B2A2;
+  --tomato: #7A1B2C;
+  --tomato-tint: #F4E9E9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #E9E6DE;
+}
+
+body {
+  margin: 0;
+  background: #E9E6DE;
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  line-height: 1.7;
+  padding: 56px 20px 100px;
+}
+
+::selection {
+  background: var(--tomato-tint);
+  color: var(--tomato);
+}
+
+.sheet {
+  max-width: 760px;
+  margin: 0 auto;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(28, 27, 24, 0.06), 0 18px 40px -24px rgba(28, 27, 24, 0.25);
+  padding: 72px 76px 90px;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 24px 0 60px;
+  }
+
+  .sheet {
+    padding: 40px 26px 56px;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* ===== Masthead ===== */
+.masthead {
+  text-align: center;
+  padding-bottom: 32px;
+  margin-bottom: 40px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+}
+
+.kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 0 auto 18px;
+  font-style: italic;
+}
+
+.doc-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.doc-meta b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ===== Preamble ===== */
+.preamble {
+  font-size: 0.98rem;
+  color: var(--ink-soft);
+  padding: 20px 24px;
+  border-left: 3px solid var(--tomato);
+  background: var(--tomato-tint);
+  margin-bottom: 44px;
+}
+
+.preamble p {
+  margin: 0;
+}
+
+.preamble p+p {
+  margin-top: 10px;
+}
+
+/* ===== Table of contents ===== */
+.toc {
+  margin-bottom: 48px;
+}
+
+.toc-heading {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 32px;
+}
+
+.toc li {
+  break-inside: avoid;
+  font-size: 0.92rem;
+  padding: 5px 0;
+  display: flex;
+  gap: 8px;
+}
+
+.toc li a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.toc li a:hover {
+  border-bottom-color: var(--tomato);
+  color: var(--tomato);
+}
+
+.toc li .n {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--tomato);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  width: 1.4em;
+}
+
+/* ===== Sections ===== */
+section.art {
+  padding-top: 34px;
+  scroll-margin-top: 24px;
+}
+
+section.art+section.art {
+  border-top: 1px solid var(--line);
+}
+
+h2 {
+  font-size: 1.18rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+h2 .n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--tomato);
+}
+
+.art p {
+  margin: 0 0 14px;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.art ul,
+.art ol.alpha {
+  margin: 0 0 14px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.art ul li,
+.art ol.alpha li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 8px;
+  text-align: justify;
+}
+
+.art ul li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--ink-soft);
+}
+
+.art ol.alpha {
+  counter-reset: alpha;
+}
+
+.art ol.alpha li {
+  counter-increment: alpha;
+}
+
+.art ol.alpha li::before {
+  content: counter(alpha, lower-alpha) ")";
+  position: absolute;
+  left: 0;
+  color: var(--tomato);
+  font-size: 0.9rem;
+}
+
+table.plans {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 18px;
+  font-size: 0.9rem;
+}
+
+table.plans caption {
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+table.plans th,
+table.plans td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.plans thead th {
+  background: var(--tomato-tint);
+  color: var(--tomato);
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+table.plans tbody th {
+  font-weight: 600;
+  background: #F5F3EE;
+  width: 130px;
+}
+
+.law-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 18px;
+  font-size: 0.9rem;
+}
+
+.law-table td {
+  padding: 9px 0;
+  border-bottom: 1px dotted var(--line);
+  vertical-align: top;
+}
+
+.law-table td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--tomato);
+  white-space: nowrap;
+  padding-right: 18px;
+  width: 1%;
+}
+
+.note {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--line-strong);
+  padding-left: 14px;
+  margin: 4px 0 16px;
+  font-style: italic;
+}
+
+/* ===== Signature block ===== */
+.signature {
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 2px solid var(--ink);
+  text-align: center;
+}
+
+.signature p {
+  max-width: 52ch;
+  margin: 0 auto 24px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.sig-line {
+  display: inline-block;
+  min-width: 260px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.sig-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.doc-footer {
+  text-align: center;
+  margin-top: 40px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--tomato);
+  outline-offset: 2px;
+}
+
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+
+  .sheet {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    padding: 20px 10px;
+  }
+}

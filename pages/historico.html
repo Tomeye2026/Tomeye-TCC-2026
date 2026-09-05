@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Histórico de análises de doenças agrícolas.">
+  <title>Histórico — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Histórico</h1>
+      <button class="page-header-action" id="btn-excluir-tudo"
+        style="color:var(--color-error); font-size:var(--font-size-sm);"><span class="material-symbols-rounded"
+          style="font-size:16px;vertical-align:middle;">delete</span> Excluir tudo</button>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Filtros -->
+      <section class="section">
+        <form id="filtros-form">
+          <div class="flex gap-sm" style="flex-wrap: wrap;">
+            <div class="form-group" style="flex:1; min-width: 140px;">
+              <label class="form-label" for="filtro-data-inicio">Data início</label>
+              <input type="date" id="filtro-data-inicio" class="form-control" min="2025-01-01" max="9999-12-31">
+            </div>
+            <div class="form-group" style="flex:1; min-width: 140px;">
+              <label class="form-label" for="filtro-data-fim">Data fim</label>
+              <input type="date" id="filtro-data-fim" class="form-control" min="2025-01-01" max="9999-12-31">
+            </div>
+          </div>
+
+          <!-- Filtro por nome/texto de doença (RF9) -->
+          <div class="form-group">
+            <label class="form-label" for="filtro-nome-doenca">Buscar por nome da doença</label>
+            <input type="text" id="filtro-nome-doenca" class="form-control" placeholder="Ex: Requeima, Septoria...">
+          </div>
+
+          <div class="flex gap-sm">
+            <button type="submit" class="btn btn-primary btn-sm"><span class="material-symbols-rounded"
+                style="font-size:16px;vertical-align:middle;">search</span> Filtrar</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-limpar-filtros"><span
+                class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">close</span>
+              Limpar</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- Lista de análises -->
+      <section class="section">
+        <div id="historico-list">
+          <div class="empty-state">
+            <div class="spinner spinner-dark spinner-sm"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/historico.js"></script>
+  <script>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => Historico.init());
+    } else {
+      Historico.init();
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Painel principal com visão geral das análises agrícolas.">
+  <title>Dashboard — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Seção Hero (saudação) -->
+    <section class="hero-section" id="hero-section">
+      <div class="hero-top-row">
+        <div class="hero-text-group">
+          <p class="hero-greeting" id="hero-greeting">Bom dia,</p>
+          <h1 class="hero-name" id="hero-name">...</h1>
+        </div>
+
+        <!-- Avatar / Menu de perfil -->
+        <div class="hero-profile-wrap" id="hero-profile-wrap">
+          <button class="hero-avatar-btn" id="hero-avatar-btn" aria-label="Menu de perfil" aria-expanded="false">
+            <div class="hero-avatar-circle" id="hero-avatar-circle">
+              <span class="hero-avatar-initials" id="hero-avatar-initials">?</span>
+            </div>
+            <span class="material-symbols-rounded hero-avatar-chevron">expand_more</span>
+          </button>
+
+          <!-- Dropdown -->
+          <div class="hero-profile-dropdown" id="hero-profile-dropdown" role="menu" aria-hidden="true">
+            <div class="hero-dropdown-header" id="hero-dropdown-user-info">
+              <div class="hero-dropdown-avatar" id="hero-dropdown-avatar">
+                <span id="hero-dropdown-initials">?</span>
+              </div>
+              <div>
+                <div class="hero-dropdown-name" id="hero-dropdown-name">...</div>
+                <div class="hero-dropdown-email" id="hero-dropdown-email">...</div>
+              </div>
+            </div>
+            <div class="hero-dropdown-divider"></div>
+            <a href="perfil.html" class="hero-dropdown-item" role="menuitem" id="hero-dd-perfil">
+              <span class="material-symbols-rounded">manage_accounts</span>
+              Atualizar perfil
+            </a>
+            <button class="hero-dropdown-item hero-dropdown-logout" role="menuitem" id="hero-dd-logout">
+              <span class="material-symbols-rounded">logout</span>
+              Sair da conta
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button class="hero-farm" id="hero-farm">
+        <span class="material-symbols-rounded" style="font-size:18px">grass</span>
+        <span id="hero-farm-name">Carregando...</span>
+        <span class="material-symbols-rounded" style="font-size:18px">expand_more</span>
+      </button>
+    </section>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content">
+
+      <!-- Grid de estatísticas -->
+      <section class="section">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Plano</span>
+            <span class="stat-value" id="stat-plano">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Análises restantes</span>
+            <span class="stat-value" id="stat-restantes">—</span>
+            <span class="stat-sub" id="stat-utilizadas-info"></span>
+          </div>
+        </div>
+
+        <!-- Card de limites do plano (fazendas + análises) -->
+        <div class="card" style="padding: var(--space-md); margin-top: var(--space-sm);" id="card-limites-plano">
+          <div class="flex justify-between items-center mb-sm">
+            <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Fazendas</span>
+            <span style="font-size: var(--font-size-sm); font-weight: 600;" id="stat-fazendas-info">0/1</span>
+          </div>
+          <div class="progress-bar-container" style="margin-bottom: var(--space-md);">
+            <div class="progress-bar-fill" id="progress-fazendas" style="width: 0%;"></div>
+          </div>
+          <div class="flex justify-between items-center mb-sm">
+            <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Funcionários</span>
+            <span style="font-size: var(--font-size-sm); font-weight: 600;" id="stat-funcionarios-info">0</span>
+          </div>
+          <div class="progress-bar-container" style="margin-bottom: var(--space-md);">
+            <div class="progress-bar-fill" id="progress-funcionarios" style="width: 0%;"></div>
+          </div>
+          <div class="flex justify-between items-center mb-sm">
+            <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Uso de análises</span>
+            <span style="font-size: var(--font-size-sm); font-weight: 600;" id="stat-percent">0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- CTA: Cadastrar fazenda (exibido quando o usuário não tem fazenda) -->
+        <div id="cta-fazenda" class="hidden" style="margin-top: var(--space-sm);">
+          <div class="card" style="padding: var(--space-lg); text-align: center; border: 2px dashed var(--color-primary); background: var(--bg-surface);">
+            <span class="material-symbols-rounded" style="font-size: 48px; color: var(--color-primary); margin-bottom: var(--space-sm); display: block;">grass</span>
+            <h3 style="margin: 0 0 var(--space-xs); font-size: var(--font-size-md);">Você ainda não possui uma fazenda</h3>
+            <p style="margin: 0 0 var(--space-md); font-size: var(--font-size-sm); color: var(--text-secondary);">
+              Cadastre sua primeira fazenda para começar a utilizar o TomEye.
+            </p>
+            <a href="fazendas.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">add</span>
+              Cadastrar fazenda
+            </a>
+          </div>
+        </div>
+
+        <!-- Limite atingido: upgrade CTA (exibido quando o limite de fazendas é alcançado) -->
+        <div id="cta-upgrade-fazendas" class="hidden" style="margin-top: var(--space-sm);">
+          <div class="card" style="padding: var(--space-md); text-align: center; border: 1px solid var(--color-warning); background: #fffbeb;">
+            <span class="material-symbols-rounded" style="font-size: 32px; color: var(--color-warning); margin-bottom: var(--space-xs); display: block;">lock</span>
+            <h3 style="margin: 0 0 var(--space-xs); font-size: var(--font-size-sm); font-weight: 600;" id="cta-upgrade-msg">Limite de fazendas atingido</h3>
+            <p style="margin: 0 0 var(--space-sm); font-size: var(--font-size-xs); color: var(--text-secondary);">
+              Faça upgrade do plano para cadastrar mais fazendas.
+            </p>
+            <a href="assinatura.html" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-rounded" style="font-size: 16px;">workspace_premium</span>
+              Ver planos
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Atalhos rápidos -->
+      <section class="section">
+        <h2 class="section-title">Acesso rápido</h2>
+        <div class="quick-actions" id="quick-actions">
+          <a href="analise.html" class="quick-action" id="qa-analise">
+            <span class="qa-icon"><span class="material-symbols-rounded">photo_camera</span></span>
+            <span class="qa-label">Nova Análise</span>
+          </a>
+          <a href="historico.html" class="quick-action" id="qa-historico">
+            <span class="qa-icon"><span class="material-symbols-rounded">history</span></span>
+            <span class="qa-label">Histórico</span>
+          </a>
+          <a href="fazendas.html" class="quick-action" id="qa-fazendas">
+            <span class="qa-icon"><span class="material-symbols-rounded">grass</span></span>
+            <span class="qa-label">Fazendas</span>
+          </a>
+          <a href="funcionarios.html" class="quick-action" id="qa-funcionarios">
+            <span class="qa-icon"><span class="material-symbols-rounded">group</span></span>
+            <span class="qa-label">Funcionários</span>
+          </a>
+          <a href="perfil.html" class="quick-action" id="qa-perfil">
+            <span class="qa-icon"><span class="material-symbols-rounded">person</span></span>
+            <span class="qa-label">Perfil</span>
+          </a>
+          <a href="assinatura.html" class="quick-action" id="qa-assinatura">
+            <span class="qa-icon"><span class="material-symbols-rounded">workspace_premium</span></span>
+            <span class="qa-label">Assinatura</span>
+          </a>
+          <a href="notificacoes.html" class="quick-action" id="qa-notificacoes">
+            <span class="qa-icon"><span class="material-symbols-rounded">notifications</span></span>
+            <span class="qa-label">Notificações</span>
+          </a>
+          <a href="#" class="quick-action" id="qa-ajuda">
+            <span class="qa-icon"><span class="material-symbols-rounded">help</span></span>
+            <span class="qa-label">Ajuda</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Últimas análises (prévia) -->
+      <section class="section">
+        <div class="flex justify-between items-center mb-md">
+          <h2 class="section-title" style="margin-bottom: 0;">Últimas análises</h2>
+          <a href="historico.html" style="font-size: var(--font-size-sm); font-weight: 600;">Ver tudo →</a>
+        </div>
+        <div id="ultimas-analises">
+          <div class="empty-state" style="padding: var(--space-lg);">
+            <div class="spinner spinner-dark spinner-sm"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/dashboard.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => Dashboard.init());
+  </script>
+</body>
+</html>

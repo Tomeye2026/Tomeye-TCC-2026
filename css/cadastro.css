@@ -1,0 +1,310 @@
+﻿/**
+ * Tomeye — cadastro.css
+ * Estilos exclusivos da tela de cadastro de conta (cadastro.html).
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *  1. Reset & Base
+ *  2. Container principal (#app)
+ *  3. Card de cadastro
+ *  4. Cabeçalho (logo + título)
+ *  5. Divisórias de seção do formulário
+ *  6. Campos de formulário (inputs, selects, ícones, toggle de senha)
+ *  7. Sub-blocos condicionais (.conditional-card)
+ *  8. Termos de Uso (checkbox)
+ *  9. Botão de envio
+ * 10. Rodapé (link para login)
+ * 11. Utilidades (.hidden, .form-hint)
+ */
+
+/* ============================================================
+   1. RESET & BASE
+   ============================================================ */* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #f8fafc;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+#app {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 32px 16px !important;
+  background: #f8fafc !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.cadastro-card {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  text-align: left;
+}
+
+/* Cabeçalho */
+.cadastro-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.cadastro-logo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cadastro-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cadastro-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.cadastro-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Divisórias de Seção */
+.form-section-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e53935;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 22px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f1f5f9;
+}
+
+/* Campos de Formulário */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 20px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 44px 0 44px;
+  font-size: 14px;
+  color: #0f172a;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+select.form-input {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.form-input:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #e53935;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+.form-group:focus-within .input-icon {
+  color: #e53935;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  z-index: 2;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  color: #0f172a;
+}
+
+/* Sub-blocos condicionais */
+.conditional-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Termos de Uso */
+.terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+
+.terms-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #e53935;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.terms-label {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.terms-label a {
+  color: #e53935;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Botão de Envio */
+.btn-cadastrar {
+  width: 100%;
+  height: 48px;
+  background: #e53935;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.3);
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-cadastrar:hover {
+  background: #d32f2f;
+  box-shadow: 0 6px 18px rgba(229, 57, 53, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-cadastrar:active {
+  transform: translateY(0);
+}
+
+.btn-cadastrar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Rodapé Login */
+.cadastro-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cadastro-footer a {
+  font-weight: 700;
+  color: #e53935;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.cadastro-footer a:hover {
+  text-decoration: underline;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,0 +1,660 @@
+﻿/**
+ * Tomeye — processamento.css
+ * Estilos exclusivos da tela de processamento de análise (processamento.html).
+ * Contém o scanner animado (orbe radar) e a lista de etapas.
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *   1. Reset & Base
+ *   2. Container principal (#app reset + .proc-page-center)
+ *   3. Fundo decorativo (gradientes radiais + grade sutil)
+ *   4. Card principal (.proc-wrapper)
+ *   5. Badge superior com ponto pulsante
+ *   6. Scanner / Orbe radar (anéis orbitais, núcleo, ondas ripple)
+ *   7. Textos (título, subtítulo)
+ *   8. Barra de progresso linear
+ *   9. Lista de etapas (.proc-step com estados: active / done)
+ *  10. Ícones de step (wrapper, spinner, check)
+ *  11. Timer e aviso de lentidão
+ *  12. Estado de erro (.proc-error e botões)
+ *  13. Animação de entrada suave (fadeUp)
+ */
+/* ── BASE ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #fafafa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+  overflow: hidden;
+}
+
+/* Neutraliza qualquer estilo do layout.css no #app */
+#app {
+  all: unset !important;
+  display: block !important;
+}
+
+/* Centralizador fixo — imune ao margin-left do sidebar */
+.proc-page-center {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* ── FUNDO DECORATIVO CLARO (BRANCO & VERMELHO) ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle 500px at 50% 15%, rgba(239, 68, 68, 0.08) 0%, rgba(254, 242, 242, 0.35) 45%, transparent 75%),
+    radial-gradient(circle 350px at 85% 85%, rgba(220, 38, 38, 0.04) 0%, transparent 60%),
+    radial-gradient(circle 300px at 15% 90%, rgba(254, 202, 202, 0.12) 0%, transparent 50%),
+    #fafafa;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grade sutil tecnológica */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(220, 38, 38, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 38, 38, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── CONTAINER PRINCIPAL CARD ── */
+.proc-wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 26px 22px;
+  width: 100%;
+  max-width: 410px;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(220, 38, 38, 0.12);
+  box-shadow:
+    0 18px 40px -12px rgba(220, 38, 38, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+/* ── BADGE SUPERIOR ── */
+.proc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.proc-badge .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6);
+  animation: badge-pulse 1.8s infinite;
+}
+
+@keyframes badge-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+/* ══════════════════════════════════════
+   RADAR / SCANNER ORBE (BRANCO & VERMELHO)
+══════════════════════════════════════ */
+.proc-orb-wrap {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+/* Efeito de ondas expansivas (Radar Pulse) */
+.orb-pulse-wave {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(239, 68, 68, 0.32);
+  animation: ripple-out 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.orb-pulse-wave:nth-child(2) {
+  animation-delay: 1.4s;
+}
+
+@keyframes ripple-out {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Anéis Orbitais */
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.orb-ring-1 {
+  width: 106px;
+  height: 106px;
+  border: 2px dashed rgba(220, 38, 38, 0.32);
+  animation: spin 9s linear infinite;
+}
+
+.orb-ring-2 {
+  width: 86px;
+  height: 86px;
+  border: 2px solid transparent;
+  border-top-color: #dc2626;
+  border-right-color: #ef4444;
+  border-bottom-color: rgba(239, 68, 68, 0.2);
+  animation: spin 2.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Núcleo do Scanner */
+.orb-core {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #991b1b 100%);
+  box-shadow:
+    0 8px 20px -3px rgba(220, 38, 38, 0.48),
+    0 0 0 4px #ffffff,
+    0 0 0 6px rgba(220, 38, 38, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: core-breath 2.4s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes core-breath {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 20px -3px rgba(220, 38, 38, 0.48), 0 0 0 4px #ffffff, 0 0 0 6px rgba(220, 38, 38, 0.15);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 24px -2px rgba(220, 38, 38, 0.65), 0 0 0 4px #ffffff, 0 0 0 9px rgba(220, 38, 38, 0.22);
+  }
+}
+
+.orb-core .material-symbols-rounded {
+  font-size: 28px;
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* ── TEXTOS ── */
+.proc-texts {
+  text-align: center;
+}
+
+.proc-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.proc-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* ── BARRA DE PROGRESSO ── */
+.proc-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.proc-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #991b1b, #dc2626 40%, #ef4444 80%, #f87171 100%);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Brilho dinâmico na barra */
+.proc-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* ── STEPS / ETAPAS ── */
+.proc-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.proc-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.proc-step.active {
+  border-color: #fca5a5;
+  background: #fff5f5;
+  box-shadow: 0 3px 12px rgba(220, 38, 38, 0.06);
+}
+
+.proc-step.done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+/* Ícone do Step */
+.step-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.proc-step.active .step-icon-wrap {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #dc2626;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.28);
+}
+
+.proc-step.done .step-icon-wrap {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.step-icon-wrap .material-symbols-rounded {
+  font-size: 18px;
+  color: #64748b;
+  transition: color 0.3s;
+}
+
+.proc-step.active .step-icon-wrap .material-symbols-rounded {
+  color: #ffffff;
+}
+
+.proc-step.done .step-icon-wrap .material-symbols-rounded {
+  color: #16a34a;
+}
+
+/* Textos do Step */
+.step-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  transition: color 0.3s;
+}
+
+.proc-step.active .step-label {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.proc-step.done .step-label {
+  color: #15803d;
+}
+
+.step-desc {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.proc-step.active .step-desc {
+  color: #dc2626;
+}
+
+/* Indicador do Step */
+.step-indicator {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Mini spinner vermelho moderno */
+.mini-spin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fee2e2;
+  border-top-color: #dc2626;
+  animation: spin 0.7s linear infinite;
+}
+
+.step-check {
+  font-size: 18px;
+  color: #16a34a;
+}
+
+/* ── TIMER ── */
+.proc-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #475569;
+  background: #f8fafc;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid #e2e8f0;
+}
+
+.proc-timer .material-symbols-rounded {
+  font-size: 14px;
+  color: #dc2626;
+}
+
+.proc-timer span {
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── AVISO LENTIDÃO ── */
+.proc-slow-warn {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 8px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.proc-slow-warn.visible {
+  display: flex;
+}
+
+/* ── ERRO ──
+   Especificidade elevada (.proc-wrapper .proc-error ...) + !important
+   de propósito: essas classes (error-icon-wrap, error-title,
+   error-actions, btn-proc-primary...) têm nomes genéricos e podem
+   colidir com regras de style.css/components.css/layout.css (que
+   são carregados antes deste <style>, mas podem ter seletores mais
+   específicos e acabar vencendo a cascata). As regras abaixo
+   garantem o layout em coluna centralizada independentemente do
+   CSS global do projeto. */
+.proc-wrapper .proc-error {
+  display: none;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  text-align: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.proc-wrapper .proc-error.visible {
+  display: flex !important;
+}
+
+.proc-wrapper .error-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fee2e2;
+  border: 2px solid #fca5a5;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: center !important;
+  margin: 0 auto !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+  flex-shrink: 0;
+}
+
+.proc-wrapper .error-icon-wrap .material-symbols-rounded {
+  font-size: 32px;
+  color: #dc2626;
+}
+
+.proc-wrapper .error-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #991b1b;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+.proc-wrapper .error-msg {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin-top: 4px;
+  max-width: 300px;
+  width: 100% !important;
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.proc-wrapper .error-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  margin: 4px auto 0 !important;
+}
+
+.proc-wrapper .btn-proc-primary {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.btn-proc-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+}
+
+.btn-proc-primary:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+
+.btn-proc-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-proc-ghost:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ── ANIMAÇÃO DE ENTRADA SUAVE ── */
+.proc-wrapper>* {
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.proc-wrapper>*:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.proc-wrapper>*:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.proc-wrapper>*:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.proc-wrapper>*:nth-child(4) {
+  animation-delay: 0.16s;
+}
+
+.proc-wrapper>*:nth-child(5) {
+  animation-delay: 0.20s;
+}
+
+.proc-wrapper>*:nth-child(6) {
+  animation-delay: 0.24s;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e53935">
+  <meta name="description" content="Tomeye — Painel administrativo com métricas de usuários, assinaturas e financeiro.">
+  <title>Administração — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── Header ── -->
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <a href="dashboard.html" class="admin-back-btn" title="Voltar">
+          <span class="material-symbols-rounded">arrow_back</span>
+        </a>
+        <div class="admin-header-title">
+          <h1>Administração</h1>
+          <span>Painel de Controle</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="admin-badge-online">Online</div>
+        <button type="button" class="btn-refresh-admin" id="btn-refresh-admin" title="Atualizar dados"
+          onclick="Admin.refreshActiveTab(this)">
+          <span class="material-symbols-rounded">refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Tabs ── -->
+    <nav class="admin-tabs-wrap">
+      <button type="button" class="admin-tab-btn active" data-tab="metricas" id="tab-metricas"
+        onclick="Admin.switchTab('metricas')">
+        <span class="material-symbols-rounded">bar_chart</span> Visão Geral
+      </button>
+      <button type="button" class="admin-tab-btn" data-tab="financeiro" id="tab-financeiro"
+        onclick="Admin.switchTab('financeiro')">
+        <span class="material-symbols-rounded">payments</span> Financeiro
+      </button>
+      <button type="button" class="admin-tab-btn" data-tab="usuarios" id="tab-usuarios"
+        onclick="Admin.switchTab('usuarios')">
+        <span class="material-symbols-rounded">group</span> Usuários
+      </button>
+      <button type="button" class="admin-tab-btn" data-tab="doencas" id="tab-doencas"
+        onclick="Admin.switchTab('doencas')">
+        <span class="material-symbols-rounded">coronavirus</span> Doenças
+      </button>
+      <button type="button" class="admin-tab-btn" data-tab="modelo" id="tab-modelo" onclick="Admin.switchTab('modelo')">
+        <span class="material-symbols-rounded">smart_toy</span> Modelo IA
+      </button>
+    </nav>
+
+    <!-- ════════════════════════════════════
+         TAB 1: MÉTRICAS / VISÃO GERAL
+         ════════════════════════════════════ -->
+    <div id="panel-metricas" class="admin-panel">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-accent: #e53935;">
+          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">group</span></div>
+          <div class="kpi-label">Usuários Cadastrados</div>
+          <div class="kpi-value" id="kpi-usuarios">—</div>
+          <div class="kpi-sub" id="kpi-usuarios-sub">—</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #0284c7;">
+          <div class="kpi-icon-wrap" style="background:#e0f2fe; color:#0284c7;"><span
+              class="material-symbols-rounded">biotech</span></div>
+          <div class="kpi-label">Análises Realizadas</div>
+          <div class="kpi-value" id="kpi-analises">—</div>
+          <div class="kpi-sub" id="kpi-analises-sub">—</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #16a34a;">
+          <div class="kpi-icon-wrap" style="background:#dcfce7; color:#16a34a;"><span
+              class="material-symbols-rounded">payments</span></div>
+          <div class="kpi-label">Receita Mensal</div>
+          <div class="kpi-value" id="kpi-receita" style="font-size:18px;">—</div>
+          <div class="kpi-sub" id="kpi-receita-sub">—</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #b71c1c;">
+          <div class="kpi-icon-wrap" style="background:#fee2e2; color:#b71c1c;"><span
+              class="material-symbols-rounded">trending_up</span></div>
+          <div class="kpi-label">Lucro Estimado</div>
+          <div class="kpi-value" id="kpi-lucro" style="font-size:18px;">—</div>
+          <div class="kpi-sub" id="kpi-lucro-sub">—</div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header">
+          <span class="admin-block-title"><span class="material-symbols-rounded">inventory_2</span> Assinaturas por
+            Plano</span>
+          <span class="admin-block-badge" id="badge-total-assinantes">—</span>
+        </div>
+        <div id="admin-planos-dist">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header">
+          <span class="admin-block-title"><span class="material-symbols-rounded">coronavirus</span> Doenças Mais
+            Detectadas</span>
+          <span class="admin-block-badge" id="badge-total-doencas-det">—</span>
+        </div>
+        <div id="admin-doencas-stats">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         TAB 2: FINANCEIRO
+         ════════════════════════════════════ -->
+    <div id="panel-financeiro" class="admin-panel hidden">
+      <div class="admin-block">
+        <div class="admin-block-header" style="background:#f8fafc;">
+          <span class="admin-block-title"><span class="material-symbols-rounded">payments</span> Receita Bruta
+            Mensal</span>
+          <span class="finance-row-value positive" id="fin-receita-bruta" style="font-size:16px;">—</span>
+        </div>
+        <div id="fin-receita-por-plano">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header" style="background:#f8fafc;">
+          <span class="admin-block-title"><span class="material-symbols-rounded">money_off</span> Despesas
+            Estimadas</span>
+          <span class="finance-row-value negative" id="fin-despesas-total" style="font-size:16px;">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label"><span class="material-symbols-rounded">cloud</span> Infraestrutura</span>
+          <span class="finance-row-value negative" id="fin-infra">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label"><span class="material-symbols-rounded">smart_toy</span> API de IA /
+            Ollama</span>
+          <span class="finance-row-value negative" id="fin-ia">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label"><span class="material-symbols-rounded">storage</span> Armazenamento</span>
+          <span class="finance-row-value negative" id="fin-storage">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label"><span class="material-symbols-rounded">build</span> Suporte /
+            Manutenção</span>
+          <span class="finance-row-value negative" id="fin-suporte">—</span>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header" style="background:#f8fafc;">
+          <span class="admin-block-title"><span class="material-symbols-rounded">bar_chart</span> Resultado do
+            Período</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label">Receita Bruta</span>
+          <span class="finance-row-value positive" id="fin-result-receita">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label">Total de Despesas</span>
+          <span class="finance-row-value negative" id="fin-result-despesas">—</span>
+        </div>
+        <div class="finance-row" style="background:#fff0f0; border-top:1px solid #fecaca;">
+          <span class="finance-row-label" style="font-weight:700; color:#b71c1c;">Lucro Líquido</span>
+          <span class="finance-row-value neutral" id="fin-result-lucro"
+            style="font-size:16px; font-weight:800;">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label">Receita Anual Projetada</span>
+          <span class="finance-row-value positive" id="fin-anual">—</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label">Lucro Anual Projetado</span>
+          <span class="finance-row-value positive" id="fin-lucro-anual">—</span>
+        </div>
+      </div>
+
+      <div class="admin-block" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; font-weight:700; color:#0f172a;">Margem de Lucro</span>
+          <span style="font-size:16px; font-weight:800; color:#e53935;" id="fin-margem-pct">—</span>
+        </div>
+        <div class="progress-track" style="margin-bottom:8px;">
+          <div class="progress-fill" id="fin-margem-bar" style="width:0%; background:#e53935;"></div>
+        </div>
+        <div style="font-size:12px; color:#64748b;" id="fin-margem-desc">—</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         TAB 3: USUÁRIOS
+         ════════════════════════════════════ -->
+    <div id="panel-usuarios" class="admin-panel hidden">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-accent: #e53935;">
+          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">person</span></div>
+          <div class="kpi-label">Produtores Rurais</div>
+          <div class="kpi-value" id="kpi-produtores">—</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #b71c1c;">
+          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">business</span></div>
+          <div class="kpi-label">Empresas</div>
+          <div class="kpi-value" id="kpi-empresas">—</div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header">
+          <span class="admin-block-title"><span class="material-symbols-rounded">group</span> Todos os Usuários</span>
+          <span class="admin-block-badge" id="badge-total-users">—</span>
+        </div>
+        <div id="admin-usuarios-list">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-header">
+          <span class="admin-block-title"><span class="material-symbols-rounded">inventory_2</span> Assinaturas
+            Ativas</span>
+          <span class="admin-block-badge" id="badge-assinaturas">—</span>
+        </div>
+        <div id="admin-assinaturas-list">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         TAB 4: DOENÇAS (CRUD)
+         ════════════════════════════════════ -->
+    <div id="panel-doencas" class="admin-panel hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">Doenças Cadastradas</h2>
+        <button class="btn-admin-red" id="btn-nova-doenca">
+          <span class="material-symbols-rounded">add</span> Nova Doença
+        </button>
+      </div>
+
+      <div id="admin-doencas-list">
+        <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         TAB 5: MODELO IA
+         ════════════════════════════════════ -->
+    <div id="panel-modelo" class="admin-panel hidden">
+      <div class="admin-block" style="padding:16px; margin-bottom:14px;">
+        <h3
+          style="font-size:14px; font-weight:700; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+          <span class="material-symbols-rounded" style="color:#e53935;">smart_toy</span> Informações do Modelo
+        </h3>
+        <div id="modelo-info">
+          <div style="padding:10px; text-align:center; color:#94a3b8;">Carregando...</div>
+        </div>
+      </div>
+
+      <div class="admin-block" style="padding:16px;">
+        <h3
+          style="font-size:14px; font-weight:700; color:#0f172a; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+          <span class="material-symbols-rounded" style="color:#e53935;">refresh</span> Atualizar Modelo de IA
+        </h3>
+        <form id="modelo-form" novalidate>
+          <label class="clean-label" for="modelo-url">URL do Modelo (Teachable Machine) *</label>
+          <input type="url" id="modelo-url" class="clean-input"
+            placeholder="https://teachablemachine.withgoogle.com/models/..." required>
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label class="clean-label" for="modelo-versao">Versão *</label>
+              <input type="text" id="modelo-versao" class="clean-input" placeholder="2.0" required>
+            </div>
+            <div style="flex:1;">
+              <label class="clean-label" for="modelo-acuracia">Acurácia (%) *</label>
+              <input type="number" id="modelo-acuracia" class="clean-input" placeholder="85" min="0" max="100" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-admin-red" style="width:100%; justify-content:center; padding:12px;"
+            id="btn-atualizar-modelo">
+            <span class="material-symbols-rounded">save</span> Salvar e Atualizar
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div><!-- #app -->
+
+  <!-- Firebase SDK -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => Admin.init());
+  </script>
+</body>
+
+</html>

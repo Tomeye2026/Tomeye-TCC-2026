@@ -1,0 +1,271 @@
+﻿/**
+ * Tomeye — nova-senha.css
+ * Estilos exclusivos da tela de nova senha (nova-senha.html).
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *  1. Reset & Base
+ *  2. Container principal (#app)
+ *  3. Card de nova senha
+ *  4. Cabeçalho (logo + título)
+ *  5. Campos de formulário
+ *  6. Botão de envio vermelho
+ *  7. Rodapé
+ *  8. Estados: sucesso e erro (ícones circulares)
+ *  9. Utilitários (.hidden, @keyframes spin)
+ */
+
+/* ============================================================
+   1. RESET & BASE
+   ============================================================ */* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #f8fafc;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+#app {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 32px 16px !important;
+  background: #f8fafc !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.nova-card {
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  text-align: left;
+}
+
+.nova-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.nova-logo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nova-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.nova-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.nova-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 20px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 44px 0 44px;
+  font-size: 14px;
+  color: #0f172a;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.form-input:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #e53935;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+.form-group:focus-within .input-icon {
+  color: #e53935;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  z-index: 2;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  color: #0f172a;
+}
+
+.btn-submit-red {
+  width: 100%;
+  height: 48px;
+  background: #e53935;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.3);
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-submit-red:hover {
+  background: #d32f2f;
+  box-shadow: 0 6px 18px rgba(229, 57, 53, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-submit-red:active {
+  transform: translateY(0);
+}
+
+.btn-submit-red:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.nova-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.nova-footer a {
+  font-weight: 700;
+  color: #e53935;
+  text-decoration: none;
+}
+
+.nova-footer a:hover {
+  text-decoration: underline;
+}
+
+.sucesso-icon-wrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.sucesso-icon-wrap span {
+  font-size: 36px;
+}
+
+.erro-icon-wrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.erro-icon-wrap span {
+  font-size: 36px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

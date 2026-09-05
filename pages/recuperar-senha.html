@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e53935">
+  <meta name="description" content="Tomeye — Redefina sua senha de forma segura e local.">
+  <title>Recuperar Senha — TomEye</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/recuperar-senha.css">
+</head>
+
+<body>
+  <main id="app">
+    <div class="recuperar-card">
+
+      <!-- Cabeçalho -->
+      <div class="recuperar-header">
+        <div class="recuperar-logo">
+          <img src="../assets/imagens/logo2.png" alt="TomEye Logo">
+        </div>
+        <h1 class="recuperar-title">Recuperar Senha</h1>
+        <p class="recuperar-subtitle" id="page-subtitle">Redefina sua senha de forma simples e segura</p>
+      </div>
+
+      <!-- ── Indicador de 3 etapas ── -->
+      <div class="step-indicator" id="step-indicator">
+        <div class="step-item">
+          <div class="step-circle active" id="circle-1">1</div>
+          <div class="step-label active" id="label-1">Identificação</div>
+        </div>
+        <div class="step-connector" id="conn-1-2"></div>
+        <div class="step-item">
+          <div class="step-circle" id="circle-2">2</div>
+          <div class="step-label" id="label-2">Segurança</div>
+        </div>
+        <div class="step-connector" id="conn-2-3"></div>
+        <div class="step-item">
+          <div class="step-circle" id="circle-3">3</div>
+          <div class="step-label" id="label-3">Nova Senha</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- ETAPA 1 — Identificação                            -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <div id="step-1">
+        <p class="step-desc">
+          Informe seu e-mail ou CPF/CNPJ cadastrado para iniciar a recuperação.
+        </p>
+        <form id="form-step-1" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="recuperar-credencial">E-mail ou CPF/CNPJ</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">mail</span>
+              <input type="text" id="recuperar-credencial" class="form-input form-control"
+                placeholder="Digite seu e-mail ou CPF/CNPJ" autocomplete="email" required>
+            </div>
+            <span class="form-error" id="err-credencial"></span>
+          </div>
+
+          <button type="submit" class="btn-submit-red btn btn-primary" id="btn-step-1">
+            <span>Continuar</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- ETAPA 2 — Pergunta de segurança                   -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <div id="step-2" class="hidden">
+        <p class="step-desc">
+          Responda à sua pergunta secreta para confirmar sua identidade.
+        </p>
+
+        <div class="pergunta-box" id="pergunta-texto">
+          Carregando pergunta...
+        </div>
+
+        <form id="form-step-2" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="resposta-seguranca">Sua Resposta</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">key</span>
+              <input type="text" id="resposta-seguranca" class="form-input form-control"
+                placeholder="Digite sua resposta cadastrada" autocomplete="off" required>
+            </div>
+            <span class="form-hint" style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
+              Não diferencia maiúsculas de minúsculas.
+            </span>
+            <span class="form-error" id="err-resposta"></span>
+          </div>
+
+          <button type="submit" class="btn-submit-red btn btn-primary" id="btn-step-2">
+            <span class="material-symbols-rounded">verified_user</span>
+            <span>Verificar Resposta</span>
+          </button>
+        </form>
+
+        <button type="button" class="btn-ghost-back" onclick="Auth.voltarStep(1)">
+          ← Voltar para identificação
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- ETAPA 3 — Nova senha                              -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <div id="step-3" class="hidden">
+        <p class="step-desc">
+          Identidade confirmada! Crie sua nova senha de acesso.
+        </p>
+
+        <form id="form-step-3" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="nova-senha-rec">Nova Senha</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">lock</span>
+              <input type="password" id="nova-senha-rec" class="form-input form-control password-field"
+                placeholder="Mínimo 6 caracteres" autocomplete="new-password" required>
+              <button type="button" id="toggle-nova-senha-rec" class="password-toggle input-password-toggle"
+                aria-label="Mostrar senha">
+                <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
+              </button>
+            </div>
+
+            <!-- Barra de Força -->
+            <div id="rec-strength-container" style="display:none; margin-top: 8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size: 11px; color: #64748b;">Força da senha</span>
+                <span id="rec-strength-label" style="font-size: 11px; font-weight: 700;"></span>
+              </div>
+              <div style="height:4px; background: #e2e8f0; border-radius: 4px; overflow:hidden;">
+                <div id="rec-strength-bar" style="height:100%; width:0%; border-radius:4px; transition: all 0.3s;">
+                </div>
+              </div>
+            </div>
+            <span class="form-error" id="err-nova-senha"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmar-senha-rec">Confirmar Nova Senha</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">lock_reset</span>
+              <input type="password" id="confirmar-senha-rec" class="form-input form-control password-field"
+                placeholder="Repita a nova senha" autocomplete="new-password" required>
+              <button type="button" id="toggle-confirmar-senha-rec" class="password-toggle input-password-toggle"
+                aria-label="Mostrar senha">
+                <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
+              </button>
+            </div>
+            <span class="form-error" id="err-confirmar-senha"></span>
+          </div>
+
+          <button type="submit" class="btn-submit-red btn btn-primary" id="btn-step-3">
+            <span class="material-symbols-rounded">check_circle</span>
+            <span>Salvar Nova Senha</span>
+          </button>
+        </form>
+
+        <button type="button" class="btn-ghost-back" onclick="Auth.voltarStep(2)">
+          ← Voltar para pergunta
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- SUCESSO                                            -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <div id="step-sucesso" class="hidden" style="text-align:center; padding: 16px 0;">
+        <div class="sucesso-icon-wrap">
+          <span class="material-symbols-rounded">check_circle</span>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Senha redefinida!</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 24px; line-height: 1.5;">
+          Sua senha foi alterada com sucesso. Você será redirecionado para o login em <strong id="countdown-rec"
+            style="color:#e53935;">3</strong> segundos.
+        </p>
+        <a href="login.html" class="btn-submit-red" style="text-decoration:none;">Ir para o Login Agora</a>
+      </div>
+
+      <!-- Rodapé -->
+      <footer class="recuperar-footer auth-footer" id="footer-voltar">
+        <a href="login.html" id="link-voltar-login">← Voltar para o login</a>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- Firebase & Scripts -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script>
+    function init() {
+      if (typeof App !== 'undefined' && App.initPasswordToggles) {
+        App.initPasswordToggles();
+      }
+      if (typeof Auth !== 'undefined' && Auth.initRecuperar) {
+        Auth.initRecuperar();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+
+</html>

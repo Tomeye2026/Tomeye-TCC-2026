@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e53935">
+  <meta name="description" content="Tomeye — Faça login para acessar o diagnóstico agrícola inteligente.">
+  <title>Login — Tomeye</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body>
+  <main id="app">
+    <div class="login-card">
+
+      <!-- Cabeçalho -->
+      <div class="login-header">
+        <div class="login-logo">
+          <img src="../assets/imagens/logo2.png" alt="TomEye Logo">
+        </div>
+        <h1 class="login-title">Acessar TomEye</h1>
+        <p class="login-subtitle">Entre com suas credenciais para continuar</p>
+      </div>
+
+      <!-- Formulário de Login -->
+      <form id="login-form" novalidate>
+
+        <!-- Campo E-mail -->
+        <div class="form-group">
+          <label class="form-label" for="login-credencial">E-mail</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-rounded input-icon">mail</span>
+            <input type="text" id="login-credencial" class="form-input form-control" placeholder="Digite seu e-mail"
+              autocomplete="username" required>
+          </div>
+          <span class="form-error"></span>
+        </div>
+
+        <!-- Campo Senha -->
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label class="form-label" for="login-senha">Senha</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-rounded input-icon">lock</span>
+            <input type="password" id="login-senha" class="form-input form-control password-field"
+              placeholder="Digite sua senha" autocomplete="current-password" required>
+            <button type="button" class="password-toggle input-password-toggle" id="toggle-senha"
+              data-toggle-password="login-senha" aria-label="Mostrar ou ocultar senha" title="Mostrar senha">
+              <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
+            </button>
+          </div>
+          <span class="form-error"></span>
+        </div>
+
+        <!-- Link Esqueci Senha -->
+        <div class="forgot-row">
+          <a href="recuperar-senha.html" class="forgot-link" id="link-esqueci-senha">Esqueci minha senha</a>
+        </div>
+
+        <!-- Botão Entrar -->
+        <button type="submit" class="btn-entrar btn btn-primary" id="btn-login">
+          Entrar
+        </button>
+
+      </form>
+
+      <!-- Rodapé Criar Conta -->
+      <footer class="login-footer auth-footer">
+        Não tem uma conta?
+        <a href="cadastro.html" id="link-criar-conta">Criar conta</a>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- Firebase & Scripts -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script>
+    function init() {
+      if (typeof App !== 'undefined' && App.initPasswordToggles) {
+        App.initPasswordToggles();
+      }
+      if (typeof Auth !== 'undefined' && Auth.initLogin) {
+        Auth.initLogin();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+
+</html>

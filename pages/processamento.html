@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#dc2626">
+  <meta name="description" content="Tomeye — Processando análise com inteligência artificial.">
+  <title>Analisando — Tomeye</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/processamento.css">
+</head>
+
+<body>
+  <div id="app">
+    <div class="proc-page-center">
+      <div class="proc-wrapper">
+
+        <!-- Badge Superior -->
+        <div class="proc-badge">
+          <span class="pulse-dot"></span>
+          <span>TomEye AI Vision</span>
+        </div>
+
+        <!-- Orbe / Scanner Animado (Branco e Vermelho) -->
+        <div class="proc-orb-wrap" id="main-spinner">
+          <div class="orb-pulse-wave"></div>
+          <div class="orb-pulse-wave"></div>
+          <div class="orb-ring orb-ring-1"></div>
+          <div class="orb-ring orb-ring-2"></div>
+          <div class="orb-core">
+            <span class="material-symbols-rounded">biotech</span>
+          </div>
+        </div>
+
+        <!-- Título e Subtítulo -->
+        <div class="proc-texts">
+          <h1 class="proc-title processing-title">Analisando imagem</h1>
+          <p class="proc-subtitle processing-subtitle">Nossa IA está identificando possíveis doenças na folha</p>
+        </div>
+
+        <!-- Barra de Progresso Vermelha -->
+        <div class="proc-progress-track">
+          <div class="proc-progress-fill" id="proc-progress-bar" style="width: 5%;"></div>
+        </div>
+
+        <!-- Steps / Etapas de Processamento -->
+        <div class="proc-steps" id="processing-steps">
+
+          <div class="proc-step" id="step-1">
+            <div class="step-icon-wrap">
+              <span class="material-symbols-rounded">eco</span>
+            </div>
+            <div class="step-body">
+              <span class="step-label">Detectando folha</span>
+              <span class="step-desc">Pré-processamento com Canvas API</span>
+            </div>
+            <div class="step-indicator" id="step-1-ind"></div>
+          </div>
+
+          <div class="proc-step" id="step-2">
+            <div class="step-icon-wrap">
+              <span class="material-symbols-rounded">smart_toy</span>
+            </div>
+            <div class="step-body">
+              <span class="step-label">Classificando doença</span>
+              <span class="step-desc">Modelo Teachable Machine / TensorFlow</span>
+            </div>
+            <div class="step-indicator" id="step-2-ind"></div>
+          </div>
+
+          <div class="proc-step" id="step-3">
+            <div class="step-icon-wrap">
+              <span class="material-symbols-rounded">psychology</span>
+            </div>
+            <div class="step-body">
+              <span class="step-label" id="step-3-label">Gerando análise completa</span>
+              <span class="step-desc">Sistema Especialista offline</span>
+            </div>
+            <div class="step-indicator" id="step-3-ind"></div>
+          </div>
+
+        </div>
+
+        <!-- Timer Decorrido -->
+        <div class="proc-timer" id="processing-timer">
+          <span class="material-symbols-rounded">schedule</span>
+          Tempo: <span id="timer-display">0s</span>
+        </div>
+
+        <!-- Aviso de Lentidão -->
+        <div class="proc-slow-warn" id="processing-slow-warning">
+          <span class="material-symbols-rounded" style="font-size: 16px; color: #d97706;">warning</span>
+          <span>O processamento está demorando um pouco mais que o esperado...</span>
+        </div>
+
+        <!-- Erro -->
+        <div class="proc-error" id="processing-error">
+          <div class="error-icon-wrap">
+            <span class="material-symbols-rounded">error</span>
+          </div>
+          <div style="text-align: center; width: 100%;">
+            <div class="error-title">Erro no processamento</div>
+            <p class="error-msg" id="processing-error-msg">Ocorreu um erro ao processar a análise.</p>
+          </div>
+          <div class="error-actions">
+            <button class="btn-proc-primary" id="btn-retry">
+              <span class="material-symbols-rounded" style="font-size: 18px;">refresh</span>
+              Tentar novamente
+            </button>
+            <a href="analise.html" class="btn-proc-ghost">
+              <span class="material-symbols-rounded" style="font-size: 16px;">arrow_back</span>
+              Selecionar outra imagem
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TensorFlow + Teachable Machine (devem ser carregados em ordem, sem defer) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+  <!-- Firebase SDK — com defer -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/tf-classificador.js"></script>
+  <script defer src="../js/ia-local.js"></script>
+  <script defer src="../js/analises.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      /* ── Patch _activateStep ── */
+      Analises._activateStep = function (n) {
+        const step = document.getElementById(`step-${n}`);
+        if (step) { step.classList.remove('done'); step.classList.add('active'); }
+        const ind = document.getElementById(`step-${n}-ind`);
+        if (ind) ind.innerHTML = '<div class="mini-spin"></div>';
+        const bar = document.getElementById('proc-progress-bar');
+        if (bar) bar.style.width = (n === 1 ? '20' : n === 2 ? '55' : '80') + '%';
+      };
+
+      /* ── Patch _completeStep ── */
+      Analises._completeStep = function (n) {
+        const step = document.getElementById(`step-${n}`);
+        if (step) { step.classList.remove('active'); step.classList.add('done'); }
+        const ind = document.getElementById(`step-${n}-ind`);
+        if (ind) ind.innerHTML = '<span class="material-symbols-rounded step-check">check_circle</span>';
+        const bar = document.getElementById('proc-progress-bar');
+        if (bar) bar.style.width = (n === 1 ? '40' : n === 2 ? '75' : '100') + '%';
+      };
+
+      /* ── Compatibilidade aviso de lentidão ── */
+      const slowEl = document.getElementById('processing-slow-warning');
+      if (slowEl) {
+        new MutationObserver(() => {
+          slowEl.classList.toggle('visible', !slowEl.classList.contains('hidden'));
+        }).observe(slowEl, { attributes: true, attributeFilter: ['class'] });
+      }
+
+      /* ── Iniciar pipeline ── */
+      Analises.initProcessamento();
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,178 @@
+﻿/**
+ * Tomeye — relatorio.css
+ * Estilos exclusivos da tela de relatório de análise (relatorio.html).
+ * Contém o gráfico de confiança em anel SVG animado.
+ * Carregado via <link> apenas nesta página.
+ *
+ * Seções:
+ *  1. Card do gráfico de confiança (.confidence-card)
+ *  2. Anel SVG (.conf-ring-svg, .conf-ring-fill, etc.)
+ *  3. Centro do anel (.conf-ring-center, .conf-pct)
+ *  4. Badge verbal de confiança (.conf-badge)
+ *  5. Barra de precisão horizontal (.conf-bar-*)
+ */
+/* ══════════════════════════════════════════
+   GRÁFICO DE CONFIANÇA — Anel SVG animado
+══════════════════════════════════════════ */
+
+/* Card que contém o anel */
+.confidence-card {
+  background: var(--bg-card, #fff);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.confidence-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* Anel SVG */
+.conf-ring-svg {
+  display: block;
+  overflow: visible;
+}
+
+.conf-ring-track {
+  fill: none;
+  stroke: var(--gray-100, #f3f3f4);
+  stroke-width: 10;
+}
+
+.conf-ring-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  /* 2π × 45 */
+  stroke-dashoffset: 283;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 0.5s ease;
+}
+
+/* Centro do anel */
+.conf-ring-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.conf-ring-wrap svg {
+  position: absolute;
+  inset: 0;
+}
+
+.conf-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.conf-pct {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.conf-pct-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Badge verbal */
+.conf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.conf-badge-alta {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.conf-badge-media {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+}
+
+.conf-badge-baixa {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+/* Barra de precisão abaixo do anel */
+.conf-bar-wrap {
+  width: 100%;
+}
+
+.conf-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.conf-bar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.conf-bar-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.conf-bar-track {
+  height: 6px;
+  background: var(--gray-100, #f3f3f4);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.conf-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.conf-bar-fill.color-alta {
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.conf-bar-fill.color-media {
+  background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.conf-bar-fill.color-baixa {
+  background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.conf-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  display: block;
+}

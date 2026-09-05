@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description"
+    content="Tomeye — Sistema inteligente de diagnóstico de doenças em culturas agrícolas por inteligência artificial.">
+  <title>Tomeye — Diagnóstico Agrícola</title>
+
+  <!-- PWA e Favicon -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="assets/imagens/logo2.png">
+
+  <!-- Fontes (Inter + Material Symbols em uma única requisição) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+</head>
+
+<body>
+
+  <!-- ============================================================
+       TELA SPLASH
+       ============================================================ -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-logo">
+      <img src="assets/imagens/logo.png" alt="Tomeye -Logo" class="splash-logo-icon"
+        style="background:transparent; box-shadow:none; border-radius:0;">
+    </div>
+    <p class="splash-tagline">Diagnóstico inteligente de doenças agrícolas com inteligência artificial</p>
+    <div class="splash-loader">
+      <div class="spinner"></div>
+      <p style="color: rgba(255,255,255,0.5); font-size: 13px;">Carregando...</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat) — carregado com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="js/firebase-config.js"></script>
+  <script defer src="js/api.js"></script>
+  <script defer src="js/app.js"></script>
+  <script>
+    /**
+     * Inicialização da aplicação
+     * 1. Exibe splash screen por pelo menos 2 segundos
+     * 2. Aguarda Firebase Auth inicializar para verificar sessão real
+     * 3. Redireciona para dashboard (sessão ativa) ou login (sem sessão)
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Registrar Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((reg) => console.log('[App] Service Worker registrado:', reg.scope))
+          .catch((err) => console.warn('[App] Falha ao registrar SW:', err));
+      }
+
+      const splashStart = Date.now();
+      const MIN_SPLASH = 800; // ms — reduzido para melhorar tempo de carregamento percebido
+
+      // Aguardar Firebase Auth inicializar (evita redirecionamento prematuro)
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        unsubscribe(); // Ouvir apenas uma vez
+
+        const elapsed = Date.now() - splashStart;
+        const delay = Math.max(0, MIN_SPLASH - elapsed);
+
+        setTimeout(() => {
+          if (user) {
+            // Usuário autenticado no Firebase: ir para dashboard
+            window.location.href = 'pages/dashboard.html';
+          } else {
+            // Sem sessão: limpar localStorage e ir para login
+            App.clearSession();
+            window.location.href = 'pages/login.html';
+          }
+        }, delay);
+      });
+    });
+  </script>
+
+</body>
+
+</html>

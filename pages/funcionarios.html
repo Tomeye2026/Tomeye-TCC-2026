@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="description" content="Tomeye — Gerencie os funcionários da sua empresa agrícola.">
+  <title>Funcionários — Tomeye</title>
+  <link rel="icon" type="image/png" href="../assets/imagens/logo2.png">
+  <link rel="apple-touch-icon" href="../assets/imagens/logo2.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- Cabeçalho -->
+    <header class="page-header">
+      <a href="dashboard.html" class="page-header-back"><span class="material-symbols-rounded">arrow_back</span></a>
+      <h1 class="page-header-title">Funcionários</h1>
+      <button class="page-header-action" id="btn-novo-funcionario">+ Novo</button>
+    </header>
+
+    <main class="main-content">
+      <!-- Aviso para contas sem permissão -->
+      <div id="aviso-nao-empresa" class="hidden">
+        <div class="empty-state">
+          <div class="empty-icon"><span class="material-symbols-rounded">lock</span></div>
+          <h3>Recurso exclusivo para produtores e empresas</h3>
+          <p>O gerenciamento de funcionários está disponível apenas para contas do tipo Produtor Rural ou Empresa.
+            Atualize seu cadastro para acessar.</p>
+          <a href="perfil.html" class="btn btn-primary mt-md">Ver meu perfil</a>
+        </div>
+      </div>
+
+      <!-- Lista de funcionários -->
+      <div id="funcionarios-list">
+        <div class="empty-state">
+          <div class="spinner spinner-dark spinner-sm"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal de formulário (oculto) -->
+    <div id="funcionario-form-modal" class="hidden">
+      <div class="modal-backdrop" id="funcionario-modal-backdrop">
+        <div class="modal" style="max-height: 92vh; overflow-y: auto;">
+          <h3 class="modal-title" id="funcionario-form-title">Novo Funcionário</h3>
+          <p id="funcionario-form-subtitle"
+            style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-top: -8px; margin-bottom: var(--space-lg);">
+            Crie a conta de acesso para o funcionário. Ele poderá fazer login no app com o e-mail e a senha temporária
+            definidos abaixo.
+          </p>
+
+          <form id="funcionario-form" novalidate>
+            <input type="hidden" id="func-id" value="">
+
+            <!-- Dados pessoais -->
+            <div class="form-group">
+              <label class="form-label required" for="func-nome">Nome completo</label>
+              <input type="text" id="func-nome" class="form-control" placeholder="Nome do funcionário" required>
+              <span class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" for="func-email">E-mail</label>
+              <input type="email" id="func-email" class="form-control" placeholder="email@exemplo.com" required>
+              <span class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" for="func-telefone">Telefone</label>
+              <input type="tel" id="func-telefone" class="form-control" placeholder="(00) 00000-0000" required>
+              <span class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" for="func-cpf">CPF</label>
+              <input type="text" id="func-cpf" class="form-control" placeholder="000.000.000-00" required>
+              <span class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="func-cargo">Cargo</label>
+              <input type="text" id="func-cargo" class="form-control" placeholder="Ex: Técnico Agrícola">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" for="func-fazenda">Fazenda vinculada</label>
+              <select id="func-fazenda" class="form-control form-select">
+                <option value="">Selecione uma fazenda...</option>
+              </select>
+              <span class="form-error"></span>
+            </div>
+
+            <!-- Seção de criação de conta (só aparece no cadastro novo) -->
+            <div id="func-campos-conta">
+              <div class="divider" style="margin: var(--space-lg) 0;"></div>
+
+              <!-- Banner informativo -->
+              <div
+                style="display:flex; align-items:flex-start; gap: var(--space-sm); background: rgba(26,122,74,0.08); border: 1px solid rgba(26,122,74,0.25); border-radius: 10px; padding: var(--space-md); margin-bottom: var(--space-md);">
+                <span class="material-symbols-rounded"
+                  style="font-size:20px; color: var(--color-primary); flex-shrink:0; margin-top:1px;">person_add</span>
+                <div>
+                  <div
+                    style="font-weight:600; font-size: var(--font-size-sm); color: var(--color-primary); margin-bottom: 2px;">
+                    Definir senha temporária</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">O funcionário usará essa
+                    senha para fazer o primeiro login. Recomendamos que ele troque a senha após entrar.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required" for="func-senha">Senha temporária</label>
+                <div class="input-group">
+                  <input type="password" id="func-senha" class="form-control password-field"
+                    placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                  <button type="button" class="input-password-toggle" data-toggle-password="func-senha"
+                    aria-label="Mostrar senha">
+                    <span class="material-symbols-rounded" style="font-size:18px;">visibility</span>
+                  </button>
+                </div>
+                <span class="form-error"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required" for="func-confirmar-senha">Confirmar senha</label>
+                <div class="input-group">
+                  <input type="password" id="func-confirmar-senha" class="form-control password-field"
+                    placeholder="Repita a senha" autocomplete="new-password">
+                  <button type="button" class="input-password-toggle" data-toggle-password="func-confirmar-senha"
+                    aria-label="Mostrar senha">
+                    <span class="material-symbols-rounded" style="font-size:18px;">visibility</span>
+                  </button>
+                </div>
+                <span class="form-error"></span>
+              </div>
+            </div>
+
+            <div class="divider" style="margin: var(--space-lg) 0;"></div>
+            <h4 style="margin-bottom: var(--space-md);">Permissões do funcionário</h4>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="perm-fotos" checked>
+                <span class="form-check-label"><span class="material-symbols-rounded"
+                    style="font-size:16px;vertical-align:middle;">photo_camera</span> Tirar fotos</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="perm-diagnostico" checked>
+                <span class="form-check-label"><span class="material-symbols-rounded"
+                    style="font-size:16px;vertical-align:middle;">biotech</span> Registrar diagnóstico</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="perm-historico" checked>
+                <span class="form-check-label"><span class="material-symbols-rounded"
+                    style="font-size:16px;vertical-align:middle;">history</span> Visualizar histórico</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="perm-excluir">
+                <span class="form-check-label"><span class="material-symbols-rounded"
+                    style="font-size:16px;vertical-align:middle;">delete</span> Excluir análises</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="perm-usuarios">
+                <span class="form-check-label"><span class="material-symbols-rounded"
+                    style="font-size:16px;vertical-align:middle;">manage_accounts</span> Gerenciar usuários</span>
+              </label>
+            </div>
+
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary btn-full" id="btn-salvar-func">Criar conta e
+                adicionar</button>
+              <button type="button" class="btn btn-ghost btn-full" id="btn-cancelar-func">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase SDK (compat) — com defer para não bloquear o parser -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script defer src="../js/firebase-config.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
+  <script defer src="../js/auth.js"></script>
+  <script defer src="../js/funcionarios.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => Funcionarios.init());
+  </script>
+</body>
+
+</html>
