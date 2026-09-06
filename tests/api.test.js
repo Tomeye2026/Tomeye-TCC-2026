@@ -22,7 +22,7 @@ vm.runInContext(codigo, contexto);
 // ==========================================
 
 test('UNIT-001 - Plano 1 deve ser Gratuito', () => {
-  assert.equal(contexto._getPlano(1).nome, 'Premium');
+  assert.equal(contexto._getPlano(1).nome, 'Gratuito');
 });
 
 test('UNIT-002 - Plano 2 deve ser Básico', () => {
