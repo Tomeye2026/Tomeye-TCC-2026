@@ -1,4 +1,4 @@
-name: Testes automatizados do TomEye
+name: CI e CD do TomEye
 
 on:
   push:
@@ -6,7 +6,9 @@ on:
       - main
 
 jobs:
+
   test:
+    name: Testes automatizados - CI
     runs-on: ubuntu-latest
 
     steps:
@@ -20,3 +22,25 @@ jobs:
 
       - name: Executar testes
         run: node --test tests/api.test.js
+
+
+  package:
+    name: Empacotar projeto - CD
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Criar arquivo ZIP
+        run: zip -r TomEye-TCC-2026.zip . -x ".git/*"
+
+      - name: Validar arquivo ZIP
+        run: unzip -t TomEye-TCC-2026.zip
+
+      - name: Publicar artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: TomEye-TCC-2026
+          path: TomEye-TCC-2026.zip
