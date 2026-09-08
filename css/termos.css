@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tomeye — termos.css
  * Estilos exclusivos da página de Termos de Uso (Termos de Uso.html).
  * Tipografia editorial estilo documento impresso.
@@ -389,6 +389,59 @@ a {
   outline-offset: 2px;
 }
 
+/* ===== Botão Voltar & Barra Superior ===== */
+.top-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.top-nav-doc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.btn-voltar-termos {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-voltar-termos:hover {
+  background: var(--tomato-tint);
+  border-color: var(--tomato);
+  color: var(--tomato);
+  transform: translateX(-3px);
+}
+
+.btn-voltar-termos:active {
+  transform: translateX(0);
+}
+
+.back-button-wrapper {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
 @media print {
   body {
     background: #fff;
@@ -400,5 +453,10 @@ a {
     border: none;
     max-width: 100%;
     padding: 20px 10px;
+  }
+
+  .top-nav-bar,
+  .back-button-wrapper {
+    display: none !important;
   }
 }

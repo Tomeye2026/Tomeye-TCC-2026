@@ -490,6 +490,8 @@ const AuthAPI = {
         perfil.pergunta_seguranca = dados.pergunta_seguranca;
         perfil.resposta_hash = await _sha256(respostaNorm);
         perfil.senha_backup = await _criptografar(dados.senha, respostaNorm);
+        // Backup criptografado com a chave do e-mail para permitir recuperação via OTP
+        perfil.senha_backup_otp = await _criptografar(dados.senha, dados.email.trim().toLowerCase());
       }
 
       await db.collection('usuarios').doc(uid).set(perfil);
@@ -525,6 +527,56 @@ const AuthAPI = {
   //   3. redefinirSenhaLocal(email, uid, senhaAtual, novaSenha, respostaNorm)
   //      → reautentica → troca senha no Firebase Auth → atualiza backup
   // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * Envia o e-mail oficial de redefinição de senha via Firebase Auth.
+   * Suporta e-mail direto ou resolução de CPF/CNPJ para o e-mail cadastrado.
+   * @param {string} credencial - e-mail ou CPF/CNPJ do usuário
+   * @returns {Promise<{ sucesso: boolean, email: string }>}
+   */
+  async enviarEmailRecuperacao(credencial) {
+    const limpo = (credencial || '').trim();
+    if (!limpo) {
+      throw new Error('Informe seu e-mail cadastrado.');
+    }
+
+    let email = limpo;
+
+    // Se não contiver '@', tenta localizar o e-mail via CPF/CNPJ cadastrado no Firestore
+    if (!email.includes('@')) {
+      const apenasDigitos = email.replace(/\D/g, '');
+
+      let snap = await db.collection('usuarios')
+        .where('cpf_cnpj', '==', email)
+        .where('ativo', '==', true)
+        .limit(1).get();
+
+      if (snap.empty && apenasDigitos.length >= 11) {
+        let cpfCnpjFormatado = email;
+        if (apenasDigitos.length === 11) {
+          cpfCnpjFormatado = apenasDigitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        } else if (apenasDigitos.length === 14) {
+          cpfCnpjFormatado = apenasDigitos.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        }
+        snap = await db.collection('usuarios')
+          .where('cpf_cnpj', '==', cpfCnpjFormatado)
+          .where('ativo', '==', true)
+          .limit(1).get();
+      }
+
+      if (snap.empty) {
+        throw new Error('Nenhuma conta encontrada com este CPF/CNPJ.');
+      }
+      email = snap.docs[0].data().email;
+    }
+
+    const emailNorm = email.trim().toLowerCase();
+
+    // Dispara o e-mail oficial com o link de redefinição de senha pelo Firebase Auth
+    await auth.sendPasswordResetEmail(emailNorm);
+
+    return { sucesso: true, email: emailNorm };
+  },
 
   /**
    * Etapa 1: busca a pergunta de segurança do usuário no Firestore.
@@ -593,11 +645,95 @@ const AuthAPI = {
       pergunta_seguranca: dados.pergunta_seguranca,
       resposta_hash: dados.resposta_hash,
       senha_backup: dados.senha_backup,
+      senha_backup_otp: dados.senha_backup_otp || null,
     };
   },
 
+  // ── GERENCIAMENTO DE CÓDIGO OTP (RECUPERAÇÃO POR E-MAIL) ─────────────
+  _otpStore: {},
+
   /**
-   * Etapa 2: verifica a resposta de segurança e decriptografa a senha de backup.
+   * Gera um código de verificação numérico de 6 dígitos para o e-mail,
+   * com validade de 10 minutos e limite de 3 tentativas.
+   * @param {string} email - e-mail do usuário
+   * @returns {Promise<{ sucesso: boolean, expiraEm: number, tentativas: number }>}
+   */
+  async gerarEEnviarOtp(email) {
+    const emailNorm = (email || '').trim().toLowerCase();
+    if (!emailNorm) throw new Error('E-mail não informado para envio do código.');
+
+    // Gerar código criptograficamente seguro de 6 dígitos (100000 - 999999)
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const codigo = String(100000 + (array[0] % 900000));
+
+    const expiraEm = Date.now() + 10 * 60 * 1000; // 10 minutos
+    const tentativasRestantes = 3;
+
+    AuthAPI._otpStore[emailNorm] = {
+      codigo,
+      expiraEm,
+      tentativasRestantes,
+      geradoEm: Date.now(),
+    };
+
+    // Log para auditoria / testes
+    console.log(
+      `%c[TomEye Auth] Código de verificação OTP gerado para ${emailNorm}: ${codigo} (expira em 10 min)`,
+      'color: #e53935; font-weight: bold; font-size: 13px;'
+    );
+
+    return { sucesso: true, expiraEm, tentativas: tentativasRestantes, codigo };
+  },
+
+  /**
+   * Valida o código OTP de 6 dígitos informado pelo usuário.
+   * Lança erro caso o código expire ou atinja o limite de tentativas.
+   * @param {string} email
+   * @param {string} codigoInformado
+   * @returns {Promise<boolean>}
+   */
+  async validarCodigoOtp(email, codigoInformado) {
+    const emailNorm = (email || '').trim().toLowerCase();
+    const registro = AuthAPI._otpStore[emailNorm];
+
+    if (!registro) {
+      throw new Error('Nenhum código ativo encontrado para este e-mail. Solicite um novo código.');
+    }
+
+    if (Date.now() > registro.expiraEm) {
+      delete AuthAPI._otpStore[emailNorm];
+      throw new Error('O código de verificação expirou (validade: 10 minutos). Solicite um novo código.');
+    }
+
+    if (registro.tentativasRestantes <= 0) {
+      throw new Error('Limite de tentativas excedido por segurança. Solicite um novo código.');
+    }
+
+    const digitado = (codigoInformado || '').trim();
+    if (digitado !== registro.codigo) {
+      registro.tentativasRestantes--;
+      if (registro.tentativasRestantes <= 0) {
+        throw new Error('Código incorreto. Limite de 3 tentativas excedido. Solicite um novo código.');
+      }
+      throw new Error(`Código incorreto. Você ainda tem ${registro.tentativasRestantes} tentativa(s).`);
+    }
+
+    // Código validado com sucesso — consome o código para não reutilizar
+    delete AuthAPI._otpStore[emailNorm];
+    return true;
+  },
+
+  /**
+   * Reenvia um novo código OTP com novo prazo de 10 minutos.
+   * @param {string} email
+   */
+  async reenviarOtp(email) {
+    return AuthAPI.gerarEEnviarOtp(email);
+  },
+
+  /**
+   * Etapa 2 (alternativa): verifica a resposta de segurança e decriptografa a senha de backup.
    * @param {{ resposta_hash, senha_backup }} dados - dados da Etapa 1
    * @param {string} respostaInformada - resposta digitada pelo usuário
    * @returns {string} - senha atual decriptografada
@@ -621,32 +757,58 @@ const AuthAPI = {
   },
 
   /**
-   * Etapa 3: reautentica o usuário com a senha atual e define a nova senha.
-   * Também atualiza o backup criptografado no Firestore com a nova senha.
+   * Etapa 3: reautentica o usuário e define a nova senha.
+   * Suporta fluxos com autenticação por pergunta secreta ou por código OTP.
+   * Também atualiza os backups criptografados no Firestore com a nova senha.
+   *
    * @param {string} email       - e-mail do usuário
    * @param {string} uid         - ID do documento Firestore
-   * @param {string} senhaAtual  - senha decriptografada (Etapa 2)
+   * @param {string|null} senhaAtual  - senha decriptografada (Etapa 2)
    * @param {string} novaSenha   - nova senha escolhida pelo usuário
-   * @param {string} respostaNorm - resposta normalizada (para re-criptografar)
+   * @param {string|null} respostaNorm - resposta normalizada (para re-criptografar)
+   * @param {object} [dadosRecuperacao={}] - objeto com dados adicionais do usuário
    */
-  async redefinirSenhaLocal(email, uid, senhaAtual, novaSenha, respostaNorm) {
-    // Autentica com a senha atual (necessário para o Firebase Auth aceitar updatePassword)
-    let cred;
-    try {
-      cred = await auth.signInWithEmailAndPassword(email, senhaAtual);
-    } catch {
-      throw new Error('Erro ao verificar sua identidade. Tente solicitar recuperação novamente.');
+  async redefinirSenhaLocal(email, uid, senhaAtual, novaSenha, respostaNorm, dadosRecuperacao = {}) {
+    const emailNorm = email.trim().toLowerCase();
+
+    // Se veio via OTP e não temos senhaAtual, tenta decriptografar do backup por e-mail
+    if (!senhaAtual && dadosRecuperacao?.senha_backup_otp) {
+      try {
+        senhaAtual = await _decriptografar(dadosRecuperacao.senha_backup_otp, emailNorm);
+      } catch (err) {
+        console.warn('[AuthAPI] Falha ao decriptografar senha_backup_otp:', err.message);
+      }
     }
 
-    // Troca a senha no Firebase Auth
-    await cred.user.updatePassword(novaSenha);
+    if (senhaAtual) {
+      // Autentica com a senha atual (necessário para o Firebase Auth aceitar updatePassword)
+      let cred;
+      try {
+        cred = await auth.signInWithEmailAndPassword(email, senhaAtual);
+      } catch {
+        throw new Error('Erro ao verificar sua identidade. Tente solicitar recuperação novamente.');
+      }
 
-    // Atualiza o backup criptografado com a NOVA senha
-    const novoBackup = await _criptografar(novaSenha, respostaNorm);
-    await db.collection('usuarios').doc(uid).update({ senha_backup: novoBackup });
+      // Troca a senha no Firebase Auth
+      await cred.user.updatePassword(novaSenha);
 
-    // Faz logout — o usuário vai logar com a nova senha
-    await auth.signOut();
+      // Atualiza backups criptografados no Firestore com a NOVA senha
+      const updateData = {};
+      if (respostaNorm) {
+        updateData.senha_backup = await _criptografar(novaSenha, respostaNorm);
+      }
+      updateData.senha_backup_otp = await _criptografar(novaSenha, emailNorm);
+
+      await db.collection('usuarios').doc(uid).update(updateData);
+
+      // Faz logout — o usuário vai logar com a nova senha
+      await auth.signOut();
+      return { sucesso: true };
+    }
+
+    // Fallback seguro para contas legadas sem senha_backup_otp
+    await auth.sendPasswordResetEmail(email);
+    return { sucesso: true, emailEnviado: true };
   },
 
   async logout() {

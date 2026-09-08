@@ -222,6 +222,12 @@ const App = {
     this._ensureToastContainer();
     const container = document.getElementById('toast-container');
 
+    // Previne exibir o mesmo toast se já houver um idêntico ativo
+    const toastsAtivos = container.querySelectorAll('.toast:not(.toast-hide)');
+    for (const t of toastsAtivos) {
+      if (t.textContent === message) return;
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;

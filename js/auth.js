@@ -336,12 +336,6 @@ const Auth = {
       regras.push({ field: 'cadastro-local-producao', label: 'Local de produção', rules: ['required'] });
     }
 
-    // Pergunta de segurança — obrigatória para todos os tipos
-    regras.push(
-      { field: 'cadastro-pergunta-seguranca', label: 'Pergunta de segurança', rules: ['required'] },
-      { field: 'cadastro-resposta-seguranca', label: 'Resposta de segurança', rules: ['required'] }
-    );
-
     // Verificação dos termos de uso separada (não é campo de texto normal)
     const termosCheckbox = document.getElementById('cadastro-termos');
     const errorTermos = document.getElementById('error-termos');
@@ -380,10 +374,6 @@ const Auth = {
       dados.local_producao = local || 'casa';
     }
 
-    // Dados de recuperação de senha local
-    dados.pergunta_seguranca = document.getElementById('cadastro-pergunta-seguranca')?.value || '';
-    dados.resposta_seguranca = document.getElementById('cadastro-resposta-seguranca')?.value.trim() || '';
-
     Auth._setBtnLoading('btn-cadastro', true, 'Criar conta', 'Criando conta...');
 
     try {
@@ -397,298 +387,217 @@ const Auth = {
   },
 
   // ============================================================
-  // 4. RECUPERAÇÃO LOCAL DE SENHA (sem e-mail)
+  // 4. RECUPERAÇÃO DE SENHA VIA LINK DO FIREBASE (2 ETAPAS)
   //
-  // Wizard de 3 etapas em recuperar-senha.html:
-  //   Etapa 1 — Identificação (e-mail/CPF)
-  //   Etapa 2 — Pergunta de segurança
-  //   Etapa 3 — Nova senha
+  // Fluxo em recuperar-senha.html:
+  //   Etapa 1 — Identificação: usuário digita o e-mail (ou CPF/CNPJ)
+  //   Etapa 2 — Link Enviado: Firebase envia e-mail com link de redefinição
   //
-  // Estado intermediário guardado em _recuperacao{}
+  // Ao clicar no link do e-mail, o usuário acessa nova-senha.html
+  // com o código de redefinição (oobCode) oficial do Firebase.
   // ============================================================
 
-  // Dados temporários entre etapas (e-mail, uid, pergunta, senha decriptografada)
   _recuperacao: null,
+  _emailRecuperacao: null,
+  _countdownTimerRecuperar: null,
+  _enviandoEmail: false,
 
   /**
    * Inicializa a tela de recuperação de senha.
-   * Conecta os listeners de submit de cada etapa do wizard.
+   * Conecta o listener do formulário da Etapa 1.
    */
   initRecuperar() {
     const f1 = document.getElementById('form-step-1');
-    const f2 = document.getElementById('form-step-2');
-    const f3 = document.getElementById('form-step-3');
-
     if (!f1) { console.error('[Auth] #form-step-1 não encontrado'); return; }
 
-    // Etapa 1: busca o usuário e a pergunta de segurança
-    f1.addEventListener('submit', async (e) => { e.preventDefault(); await Auth._handleStep1(); });
+    // Trava de segurança: impede registrar múltiplos listeners no mesmo formulário
+    if (f1._hasSubmitHandler) return;
+    f1._hasSubmitHandler = true;
 
-    // Etapa 2: verifica a resposta e decriptografa a senha
-    if (f2) f2.addEventListener('submit', async (e) => { e.preventDefault(); await Auth._handleStep2(); });
+    // Etapa 1: envia o e-mail oficial com o link de recuperação pelo Firebase
+    f1.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await Auth._handleStep1();
+    });
 
-    // Etapa 3: define a nova senha
-    if (f3) {
-      f3.addEventListener('submit', async (e) => { e.preventDefault(); await Auth._handleStep3(); });
-
-      // Toggle de visibilidade dos campos de senha
-      Auth._toggleSenha('nova-senha-rec', 'toggle-nova-senha-rec');
-      Auth._toggleSenha('confirmar-senha-rec', 'toggle-confirmar-senha-rec');
-
-      // Indicador de força da senha em tempo real
-      const inputSenha = document.getElementById('nova-senha-rec');
-      if (inputSenha) {
-        inputSenha.addEventListener('input', () => Auth._atualizarForcaSenhaRec(inputSenha.value));
-      }
+    // Limpa a mensagem de erro inline assim que o usuário começar a digitar novamente
+    const inputCred = document.getElementById('recuperar-credencial');
+    if (inputCred) {
+      inputCred.addEventListener('input', () => {
+        const errCred = document.getElementById('err-credencial');
+        if (errCred) errCred.textContent = '';
+      });
+      setTimeout(() => inputCred.focus(), 200);
     }
   },
 
   /**
-   * Etapa 1: verifica se o usuário existe e tem pergunta de segurança.
-   * Avança para a Etapa 2 mostrando a pergunta cadastrada.
+   * Etapa 1: envia as instruções e o link oficial do Firebase para o e-mail informado.
    * @private
    */
   async _handleStep1() {
+    // Evita chamadas concorrentes ou cliques múltiplos rápidos
+    if (Auth._enviandoEmail) return;
+
     // Limpa erro anterior
     const errCred = document.getElementById('err-credencial');
     if (errCred) errCred.textContent = '';
 
     const credencial = document.getElementById('recuperar-credencial')?.value.trim();
     if (!credencial) {
-      if (errCred) errCred.textContent = 'Informe seu e-mail ou CPF/CNPJ.';
+      if (errCred) errCred.textContent = 'Informe seu e-mail cadastrado.';
       return;
     }
 
+    Auth._enviandoEmail = true;
+
+    const textoBtnNormal = '<span class="material-symbols-rounded">send</span> <span>Enviar link de recuperação</span>';
     Auth._setBtnLoading(
       'btn-step-1', true,
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">arrow_forward</span> Continuar',
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">hourglass_empty</span> Verificando...'
+      textoBtnNormal,
+      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">hourglass_empty</span> Enviando...'
     );
 
     try {
-      // Busca a pergunta de segurança do usuário no Firestore
-      const dados = await AuthAPI.buscarPerguntaSeguranca(credencial);
+      // Dispara envio do link oficial via Firebase Auth (apenas uma única chamada)
+      const res = await AuthAPI.enviarEmailRecuperacao(credencial);
+      Auth._emailRecuperacao = res.email;
 
-      // Guarda os dados para as próximas etapas
-      Auth._recuperacao = dados;
+      // Atualiza o e-mail de destino exibido na Etapa 2
+      const emailDestinoEl = document.getElementById('email-confirmacao-destino');
+      if (emailDestinoEl) emailDestinoEl.textContent = res.email;
 
-      // Exibe a pergunta na Etapa 2
-      const perguntaEl = document.getElementById('pergunta-texto');
-      if (perguntaEl) perguntaEl.textContent = dados.pergunta_seguranca;
+      // Restaura o botão da Etapa 1
+      Auth._setBtnLoading('btn-step-1', false, textoBtnNormal, '');
 
-      // Limpa campo de resposta ao avançar
-      const respostaInput = document.getElementById('resposta-seguranca');
-      if (respostaInput) respostaInput.value = '';
-      const errResp = document.getElementById('err-resposta');
-      if (errResp) errResp.textContent = '';
-
-      // Avança para a Etapa 2
+      // Avança visualmente para a Etapa 2
       Auth._avancarStep(1, 2);
 
-      // Foca no campo de resposta
-      setTimeout(() => respostaInput?.focus(), 300);
+      // Notificação de sucesso única
+      App.showToast('Link de recuperação enviado com sucesso!', 'success');
 
     } catch (error) {
-      const msg = error.message || 'Erro ao buscar conta. Verifique o e-mail ou CPF/CNPJ.';
-      App.showToast(msg, 'error');
-      if (errCred) errCred.textContent = msg;
-      Auth._setBtnLoading(
-        'btn-step-1', false,
-        '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">arrow_forward</span> Continuar', ''
-      );
-    }
-  },
-
-  /**
-   * Etapa 2: verifica a resposta de segurança.
-   * Se correta, decriptografa a senha e avança para a Etapa 3.
-   * @private
-   */
-  async _handleStep2() {
-    // Limpa erro anterior
-    const errResp = document.getElementById('err-resposta');
-    if (errResp) errResp.textContent = '';
-
-    const resposta = document.getElementById('resposta-seguranca')?.value.trim();
-    if (!resposta) {
-      if (errResp) errResp.textContent = 'Digite sua resposta de segurança.';
-      return;
-    }
-
-    // Verifica se ainda temos os dados da Etapa 1
-    if (!Auth._recuperacao) {
-      App.showToast('Sessão expirada. Comece novamente.', 'error');
-      Auth.voltarStep(1);
-      return;
-    }
-
-    Auth._setBtnLoading(
-      'btn-step-2', true,
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">verified_user</span> Verificar resposta',
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">hourglass_empty</span> Verificando...'
-    );
-
-    try {
-      // Verifica a resposta e decriptografa a senha de backup
-      const senhaAtual = await AuthAPI.verificarEDecriptografar(Auth._recuperacao, resposta);
-
-      if (!senhaAtual) {
-        throw new Error('Não foi possível verificar a resposta. Tente novamente.');
+      const msg = Auth._traduzirErroFirebase(error.code, error.message || 'Erro ao enviar link. Verifique o e-mail digitado.');
+      // Exibe o erro no campo correspondente sem duplicar simultaneamente em toast
+      if (errCred) {
+        errCred.textContent = msg;
+      } else {
+        App.showToast(msg, 'error');
       }
-
-      // Guarda para a Etapa 3 (necessária para reautenticar)
-      Auth._recuperacao.senhaAtual = senhaAtual;
-      Auth._recuperacao.respostaNorm = resposta.trim().toLowerCase().replace(/\s+/g, ' ');
-
-      // Limpa campos da etapa 3
-      const novaSenhaInput = document.getElementById('nova-senha-rec');
-      const confirmarInput = document.getElementById('confirmar-senha-rec');
-      if (novaSenhaInput) novaSenhaInput.value = '';
-      if (confirmarInput) confirmarInput.value = '';
-      const errNova = document.getElementById('err-nova-senha');
-      const errConf = document.getElementById('err-confirmar-senha');
-      if (errNova) errNova.textContent = '';
-      if (errConf) errConf.textContent = '';
-
-      // Avança para a Etapa 3
-      Auth._avancarStep(2, 3);
-      setTimeout(() => novaSenhaInput?.focus(), 300);
-
-    } catch (error) {
-      const msg = error.message || 'Resposta incorreta. Verifique e tente novamente.';
-      App.showToast(msg, 'error');
-      if (errResp) errResp.textContent = msg;
-      Auth._setBtnLoading(
-        'btn-step-2', false,
-        '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">verified_user</span> Verificar resposta', ''
-      );
+      Auth._setBtnLoading('btn-step-1', false, textoBtnNormal, '');
+    } finally {
+      Auth._enviandoEmail = false;
     }
   },
 
   /**
-   * Etapa 3: define a nova senha.
-   * Reautentica com a senha atual (decriptografada), troca no Firebase Auth
-   * e atualiza o backup criptografado no Firestore.
-   * @private
+   * Reenvia o e-mail de redefinição pelo Firebase com cooldown de 60 segundos.
    */
-  async _handleStep3() {
-    // Limpa erros anteriores
-    const errNova = document.getElementById('err-nova-senha');
-    const errConf = document.getElementById('err-confirmar-senha');
-    if (errNova) errNova.textContent = '';
-    if (errConf) errConf.textContent = '';
+  async reenviarEmailRecuperacao() {
+    if (Auth._enviandoEmail) return;
 
-    const novaSenha = document.getElementById('nova-senha-rec')?.value || '';
-    const confirmar = document.getElementById('confirmar-senha-rec')?.value || '';
-
-    // Validações locais antes de chamar a API
-    if (novaSenha.length < 6) {
-      if (errNova) errNova.textContent = 'A senha deve ter pelo menos 6 caracteres.';
-      return;
-    }
-    if (novaSenha !== confirmar) {
-      if (errConf) errConf.textContent = 'As senhas não coincidem.';
-      return;
-    }
-    if (!Auth._recuperacao?.senhaAtual) {
-      App.showToast('Sessão expirada. Comece o processo novamente.', 'error');
+    const email = Auth._emailRecuperacao;
+    if (!email) {
+      App.showToast('Informe seu e-mail novamente.', 'error');
       Auth.voltarStep(1);
       return;
     }
 
-    Auth._setBtnLoading(
-      'btn-step-3', true,
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">lock_reset</span> Redefinir senha',
-      '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">hourglass_empty</span> Salvando...'
-    );
+    const btnReenviar = document.getElementById('btn-reenviar-email');
+    const txtReenviar = document.getElementById('txt-reenviar-email');
+    if (btnReenviar && btnReenviar.disabled) return;
+
+    Auth._enviandoEmail = true;
 
     try {
-      const { email, uid, senhaAtual, respostaNorm } = Auth._recuperacao;
+      await AuthAPI.enviarEmailRecuperacao(email);
+      App.showToast('Novo e-mail enviado com sucesso!', 'success');
 
-      // Reautentica + troca a senha no Firebase Auth + atualiza backup
-      await AuthAPI.redefinirSenhaLocal(email, uid, senhaAtual, novaSenha, respostaNorm);
+      // Cooldown de 60 segundos para prevenir abuso no Firebase
+      let cooldown = 60;
+      if (btnReenviar) {
+        btnReenviar.disabled = true;
+        btnReenviar.style.opacity = '0.6';
+        btnReenviar.style.cursor = 'not-allowed';
+        if (txtReenviar) txtReenviar.textContent = `Reenviar em ${cooldown}s`;
 
-      // Limpa o estado temporário
-      Auth._recuperacao = null;
-
-      // Mostra tela de sucesso e redireciona em 3s
-      Auth._avancarStep(3, 'sucesso');
-      App.showToast('Senha redefinida com sucesso!', 'success');
-
-      let seg = 3;
-      const countdown = document.getElementById('countdown-rec');
-      const timer = setInterval(() => {
-        seg--;
-        if (countdown) countdown.textContent = seg;
-        if (seg <= 0) { clearInterval(timer); window.location.href = 'login.html'; }
-      }, 1000);
-
-    } catch (error) {
-      const msg = Auth._traduzirErroFirebase(error.code, error.message || 'Erro ao redefinir senha. Tente novamente.');
+        if (Auth._countdownTimerRecuperar) clearInterval(Auth._countdownTimerRecuperar);
+        Auth._countdownTimerRecuperar = setInterval(() => {
+          cooldown--;
+          if (cooldown <= 0) {
+            clearInterval(Auth._countdownTimerRecuperar);
+            Auth._countdownTimerRecuperar = null;
+            btnReenviar.disabled = false;
+            btnReenviar.style.opacity = '1';
+            btnReenviar.style.cursor = 'pointer';
+            if (txtReenviar) txtReenviar.textContent = 'Reenviar e-mail';
+          } else {
+            if (txtReenviar) txtReenviar.textContent = `Reenviar em ${cooldown}s`;
+          }
+        }, 1000);
+      }
+    } catch (err) {
+      const msg = Auth._traduzirErroFirebase(err.code, err.message || 'Erro ao reenviar e-mail.');
       App.showToast(msg, 'error');
-      Auth._setBtnLoading(
-        'btn-step-3', false,
-        '<span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">lock_reset</span> Redefinir senha', ''
-      );
+    } finally {
+      Auth._enviandoEmail = false;
     }
   },
 
   /**
-   * Avança ou recua entre as etapas do wizard de recuperação.
+   * Avança entre as etapas do wizard de recuperação.
    * Atualiza os indicadores visuais de etapa.
    *
-   * @param {number|string} de  - etapa atual (1, 2 ou 3)
-   * @param {number|string} para - próxima etapa (1, 2, 3 ou 'sucesso')
+   * @param {number} de - etapa atual
+   * @param {number} para - próxima etapa
    */
   _avancarStep(de, para) {
     // Esconde a etapa atual
-    const divAtual = document.getElementById(de === 'sucesso' ? 'step-sucesso' : `step-${de}`);
+    const divAtual = document.getElementById(`step-${de}`);
     if (divAtual) divAtual.classList.add('hidden');
 
     // Mostra a próxima etapa
-    const divProxima = document.getElementById(para === 'sucesso' ? 'step-sucesso' : `step-${para}`);
+    const divProxima = document.getElementById(`step-${para}`);
     if (divProxima) divProxima.classList.remove('hidden');
 
-    // Atualiza os círculos indicadores de etapa (só para etapas numéricas)
-    if (typeof de === 'number') {
-      const circAtual = document.getElementById(`circle-${de}`);
-      const labelAtual = document.getElementById(`label-${de}`);
-      if (circAtual) { circAtual.classList.remove('active'); circAtual.classList.add('done'); circAtual.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check</span>'; }
-      if (labelAtual) { labelAtual.classList.remove('active'); }
+    // Atualiza os círculos indicadores de etapa
+    const circAtual = document.getElementById(`circle-${de}`);
+    const labelAtual = document.getElementById(`label-${de}`);
+    if (circAtual) {
+      circAtual.classList.remove('active');
+      circAtual.classList.add('done');
+      circAtual.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check</span>';
     }
-    if (typeof para === 'number') {
-      const circProx = document.getElementById(`circle-${para}`);
-      const labelProx = document.getElementById(`label-${para}`);
-      if (circProx) { circProx.classList.add('active'); }
-      if (labelProx) { labelProx.classList.add('active'); }
-      // Marca o conector entre as etapas como "feito"
-      const conn = document.getElementById(`conn-${de}-${para}`);
-      if (conn) conn.classList.add('done');
-    }
+    if (labelAtual) labelAtual.classList.remove('active');
+
+    const conn = document.getElementById(`conn-${de}-${para}`);
+    if (conn) conn.classList.add('done');
+
+    const circProx = document.getElementById(`circle-${para}`);
+    const labelProx = document.getElementById(`label-${para}`);
+    if (circProx) circProx.classList.add('active');
+    if (labelProx) labelProx.classList.add('active');
   },
 
   /**
    * Volta para uma etapa anterior do wizard.
-   * Chamado pelos botões "← Voltar" de cada etapa.
-   * @param {number} etapa - número da etapa para onde voltar
+   * @param {number} etapa - número da etapa para onde voltar (ex: 1)
    */
   voltarStep(etapa) {
-    // Remove a classe active do círculo atual e volta para o anterior
     const etapaAtual = etapa + 1;
     const circAtual = document.getElementById(`circle-${etapaAtual}`);
     const labelAtual = document.getElementById(`label-${etapaAtual}`);
     const circAnterior = document.getElementById(`circle-${etapa}`);
     const labelAnterior = document.getElementById(`label-${etapa}`);
 
-    if (circAtual) { circAtual.classList.remove('active'); }
-    if (labelAtual) { labelAtual.classList.remove('active'); }
+    if (circAtual) circAtual.classList.remove('active');
+    if (labelAtual) labelAtual.classList.remove('active');
     if (circAnterior) {
-      // Remove estado "done" e restaura o número da etapa (innerHTML pode ter ícone check)
       circAnterior.classList.remove('done');
       circAnterior.innerHTML = String(etapa);
       circAnterior.classList.add('active');
     }
-    if (labelAnterior) { labelAnterior.classList.add('active'); }
+    if (labelAnterior) labelAnterior.classList.add('active');
 
     // Reverte o conector
     const conn = document.getElementById(`conn-${etapa}-${etapaAtual}`);
@@ -697,41 +606,17 @@ const Auth = {
     // Troca as divs
     document.getElementById(`step-${etapaAtual}`)?.classList.add('hidden');
     document.getElementById(`step-${etapa}`)?.classList.remove('hidden');
-  },
 
-  /**
-   * Atualiza o indicador de força de senha na tela de recuperação.
-   * @param {string} senha
-   * @private
-   */
-  _atualizarForcaSenhaRec(senha) {
-    const container = document.getElementById('rec-strength-container');
-    const bar = document.getElementById('rec-strength-bar');
-    const label = document.getElementById('rec-strength-label');
-
-    if (!senha) {
-      if (container) container.style.display = 'none';
-      return;
+    // Se voltou para a Etapa 1, restaura o botão e foca no input
+    if (etapa === 1) {
+      Auth._setBtnLoading(
+        'btn-step-1', false,
+        '<span class="material-symbols-rounded">send</span> <span>Enviar link de recuperação</span>', ''
+      );
+      setTimeout(() => {
+        document.getElementById('recuperar-credencial')?.focus();
+      }, 200);
     }
-    if (container) container.style.display = 'block';
-
-    // Pontuação baseada em comprimento e variedade de caracteres
-    const pontos = [
-      senha.length >= 6,
-      senha.length >= 10,
-      /[A-Z]/.test(senha),
-      /[0-9]/.test(senha),
-    ].filter(Boolean).length;
-
-    const niveis = [
-      { width: '25%', color: '#ef4444', texto: 'Fraca' },
-      { width: '50%', color: '#f59e0b', texto: 'Razoável' },
-      { width: '75%', color: '#3b82f6', texto: 'Boa' },
-      { width: '100%', color: '#16a34a', texto: 'Forte' },
-    ];
-    const nivel = niveis[Math.max(0, pontos - 1)];
-    if (bar) { bar.style.width = nivel.width; bar.style.backgroundColor = nivel.color; }
-    if (label) { label.textContent = nivel.texto; label.style.color = nivel.color; }
   },
 
 

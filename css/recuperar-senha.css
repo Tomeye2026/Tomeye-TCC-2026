@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tomeye — recuperar-senha.css
  * Estilos exclusivos da tela de recuperação de senha (recuperar-senha.html).
  * Implementa um wizard de 3 etapas.
@@ -102,7 +102,7 @@ body {
 #step-indicator,
 .step-indicator {
   width: 100% !important;
-  max-width: 320px !important;
+  max-width: 240px !important;
   height: auto !important;
   border: none !important;
   border-radius: 0 !important;
@@ -127,8 +127,8 @@ body {
 }
 
 .step-circle {
-  width: 32px !important;
-  height: 32px !important;
+  width: 34px !important;
+  height: 34px !important;
   border-radius: 50% !important;
   background: #f1f5f9 !important;
   border: 2px solid #cbd5e1 !important;
@@ -157,7 +157,7 @@ body {
 }
 
 .step-label {
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: #64748b !important;
   text-align: center !important;
   line-height: 1.2 !important;
@@ -171,10 +171,10 @@ body {
 }
 
 .step-connector {
-  flex: 0 0 24px !important;
+  flex: 0 0 44px !important;
   height: 2px !important;
   background: #e2e8f0 !important;
-  margin: 0 2px 18px 2px !important;
+  margin: 0 6px 18px 6px !important;
   transition: background 0.3s ease;
 }
 
@@ -376,4 +376,21 @@ body {
   margin-bottom: 18px;
   text-align: center;
   line-height: 1.4;
+}
+
+/* ── Estilos OTP ── */
+.input-otp {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: 8px !important;
+  text-align: center !important;
+  padding-left: 20px !important;
+}
+
+.btn-tentar-outro:hover {
+  color: #e53935 !important;
+}
+
+.btn-link-action:hover {
+  color: #b71c1c !important;
 }
