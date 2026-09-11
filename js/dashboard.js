@@ -276,6 +276,15 @@ const Dashboard = {
     }
     if (dropdownName) dropdownName.textContent = nome || 'Usuário';
     if (dropdownEmail) dropdownEmail.textContent = email;
+
+    const adminLink = document.getElementById('hero-dd-admin');
+    if (adminLink) {
+      if (App.isAdmin()) {
+        adminLink.classList.remove('hidden');
+      } else {
+        adminLink.classList.add('hidden');
+      }
+    }
   },
 
   /**

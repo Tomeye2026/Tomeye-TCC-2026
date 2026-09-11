@@ -140,6 +140,44 @@ A proposta busca aproximar soluções tecnológicas do setor agrícola e demonst
 
 ---
 
+## 💰 Viabilidade Econômica e Planejamento Financeiro
+
+Para subsidiar o estudo de viabilidade do projeto e seu modelo de negócios, foi elaborado o planejamento financeiro com a estimativa de custos para **12 meses de operação presencial**, além da análise do **Ponto de Equilíbrio (*Break-Even Point*)**.
+
+### 📋 Estimativa de Custos (12 Meses de Operação Presencial)
+
+| Categoria | Item | Custo Mensal (R$) | Custo Anual (R$) |
+|---|---|---|---|
+| Infraestrutura Física | Aluguel de sala/escritório | 1.100,00 | 13.200,00 |
+| Infraestrutura Física | Energia elétrica | 280,00 | 3.360,00 |
+| Infraestrutura Física | Internet (fibra, plano empresarial) | 180,00 | 2.160,00 |
+| Infraestrutura Física | Água e saneamento | 100,00 | 1.200,00 |
+| Equipamentos | Notebooks, 9 unidades (R$183,00 cada)* | 1.647,00 | 19.764,00 |
+| Equipamentos | Celular para coleta de imagens* | 75,00 | 900,00 |
+| Software e Serviços | Hospedagem web (plano Business) | 33,00 | 396,00 |
+| Software e Serviços | Domínio .com.br (Registro.br) | 3,33 | 40,00 |
+| Software e Serviços | Ferramentas de desenvolvimento e API de IA | 150,00 | 1.800,00 |
+| Recursos Humanos | Equipe de desenvolvimento, 9 pessoas (R$2.000,00/pessoa) | 18.000,00 | 216.000,00 |
+| Marketing e Divulgação | Material impresso e digital | 150,00 | 1.800,00 |
+| **Subtotal** | | **21.718,33** | **260.619,96** |
+| Reserva de Contingência | Imprevistos (10% do subtotal) | 2.171,83 | 26.061,96 |
+| **TOTAL ESTIMADO** | | **23.890,16** | **286.681,92** |
+
+*\* Itens com depreciação linear calculada em 24 meses de vida útil dos equipamentos.*
+
+### ⚖️ Ponto de Equilíbrio (*Break-Even Point*)
+
+Com um custo operacional mensal fixado em **R$ 23.890,16**, o equilíbrio financeiro do sistema pode ser alcançado através das seguintes metas de assinaturas:
+
+- **Plano Básico (R$ 60,00/mês)**: 399 assinantes necessários
+- **Plano Premium (R$ 100,00/mês)**: 239 assinantes necessários
+- **Plano Empresarial (R$ 1.000,00/mês)**: 24 assinantes necessários
+- **Cenário Misto Projetado**: 15 Empresas (R$ 15.000,00) + 60 Premium (R$ 6.000,00) + 49 Básicos (R$ 2.940,00) = **R$ 23.940,00/mês** (100,2% do ponto de equilíbrio).
+
+---
+
+---
+
 <div align="center">
 
 ### TomEye

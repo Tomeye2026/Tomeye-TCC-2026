@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tomeye — admin.css
  * Estilos exclusivos do painel administrativo (admin.html).
  * Carregado via <link> apenas nesta página.
@@ -560,4 +560,346 @@ body {
   display: flex;
   gap: 8px;
   margin-top: 16px;
+}
+
+/* ══════════════════════════════════════════════════
+   13. TABELA DE USUÁRIOS REAIS & TOOLBAR DE BUSCA
+   ══════════════════════════════════════════════════ */
+.admin-users-toolbar {
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 12px;
+  flex: 1;
+  min-width: 220px;
+  box-sizing: border-box;
+}
+
+.admin-search-wrap .material-symbols-rounded {
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+.admin-search-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #0f172a;
+  width: 100%;
+  font-family: inherit;
+}
+
+.admin-filters-wrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-select-filter {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-select-filter:focus {
+  border-color: #e53935;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-users-table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-users-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.admin-users-table tr.user-row-item:hover {
+  background: #fafafa;
+}
+
+.account-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.account-type-badge .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.account-type-badge.type-produtor {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.account-type-badge.type-amador {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.account-type-badge.type-empresa {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.account-type-badge.type-funcionario {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.account-type-badge.type-admin {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-badge.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-active .status-dot {
+  background: #16a34a;
+  box-shadow: 0 0 4px #16a34a;
+}
+
+.status-inactive .status-dot {
+  background: #dc2626;
+}
+
+/* ══════════════════════════════════════════════════
+   14. PONTO DE EQUILÍBRIO (BREAK-EVEN) & TABELA FINANCEIRA
+   ══════════════════════════════════════════════════ */
+.break-even-block {
+  border-left: 4px solid #ea580c;
+}
+
+.break-even-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.be-stat {
+  background: #fafafa;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.be-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.be-val {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.be-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.text-danger { color: #dc2626; }
+.text-success { color: #16a34a; }
+.text-primary { color: #ea580c; }
+
+.be-targets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.be-target-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.be-target-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.be-target-card.highlighted {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.be-target-title {
+  margin-bottom: 6px;
+}
+
+.be-target-price {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.be-target-qty {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.be-target-mix {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ea580c;
+  line-height: 1.3;
+}
+
+.be-target-desc {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Tabela de Custos Personalizada */
+.finance-custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.finance-custom-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.finance-custom-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.cost-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cost-cat-badge .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.cost-item-text {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.cost-col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #334155;
+}
+
+.cost-row:hover {
+  background: #fafafa;
+}
+
+.cost-row-subtotal {
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.cost-row-contingencia {
+  background: #fffbeb;
+  border-bottom: 1px solid #fef3c7;
+}
+
+.cost-row-total {
+  background: #fff0f0;
+  border-top: 2px solid #fca5a5;
+  border-bottom: 2px solid #fca5a5;
 }

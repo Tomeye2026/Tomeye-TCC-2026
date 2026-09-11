@@ -96,7 +96,10 @@ const App = {
    */
   isAdmin() {
     const session = this.getSession();
-    return session?.usuario?.tipo === 'admin';
+    if (!session || !session.usuario) return false;
+    const tipo = String(session.usuario.tipo || '').toLowerCase().trim();
+    const email = String(session.usuario.email || '').toLowerCase().trim();
+    return tipo === 'admin' || email === 'admin@tomeye.com' || email.startsWith('admin@');
   },
 
   // ----------------------------------------------------------
@@ -550,6 +553,7 @@ const App = {
       { id: 'analise', icon: '<span class="material-symbols-rounded">photo_camera</span>', label: 'Análise', href: 'analise.html', center: true },
       // Fazendas: visível apenas para produtores e empresas (não para amadores)
       ...(!this.isAmador() ? [{ id: 'fazendas', icon: '<span class="material-symbols-rounded">grass</span>', label: 'Fazendas', href: 'fazendas.html' }] : []),
+      ...(this.isAdmin() ? [{ id: 'admin', icon: '<span class="material-symbols-rounded">admin_panel_settings</span>', label: 'Admin', href: 'admin.html' }] : []),
       { id: 'menu', icon: '<span class="material-symbols-rounded">menu</span>', label: 'Menu', href: '#menu' },
     ];
 
@@ -633,7 +637,7 @@ const App = {
             <div class="list-item-body"><div class="list-item-title">Perfil</div></div>
             <span style="color:var(--text-muted)">›</span>
           </a>
-          ${!this.isAmador() ? `
+          ${this.podeGerenciarFuncionarios() ? `
           <a href="funcionarios.html" class="list-item" style="margin-bottom:0">
             <span style="font-size:20px"><span class="material-symbols-rounded">group</span></span>
             <div class="list-item-body"><div class="list-item-title">Funcionários</div></div>

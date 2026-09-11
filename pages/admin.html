@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -125,117 +125,261 @@
     </div>
 
     <!-- ════════════════════════════════════
-         TAB 2: FINANCEIRO
+         TAB 2: FINANCEIRO & PONTO DE EQUILÍBRIO
          ════════════════════════════════════ -->
     <div id="panel-financeiro" class="admin-panel hidden">
-      <div class="admin-block">
-        <div class="admin-block-header" style="background:#f8fafc;">
-          <span class="admin-block-title"><span class="material-symbols-rounded">payments</span> Receita Bruta
-            Mensal</span>
-          <span class="finance-row-value positive" id="fin-receita-bruta" style="font-size:16px;">—</span>
+
+      <!-- Ponto de Equilíbrio (Break-Even) -->
+      <div class="admin-block break-even-block">
+        <div class="admin-block-header" style="background:#fff7ed; border-bottom:1px solid #fed7aa;">
+          <span class="admin-block-title" style="color:#9a3412;">
+            <span class="material-symbols-rounded" style="color:#ea580c;">balance</span>
+            Ponto de Equilíbrio (Break-Even Point)
+          </span>
+          <span class="admin-block-badge" id="badge-break-even-status" style="background:#ffedd5; color:#c2410c;">Meta:
+            R$ 23.890,16/mês</span>
         </div>
-        <div id="fin-receita-por-plano">
-          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+        <div style="padding:16px;">
+          <div class="break-even-summary">
+            <div class="be-stat">
+              <span class="be-label">Custo Operacional Mensal</span>
+              <span class="be-val text-danger" id="be-custo-total">R$ 23.890,16</span>
+              <span class="be-sub">R$ 286.681,92 / ano</span>
+            </div>
+            <div class="be-stat">
+              <span class="be-label">Receita Mensal Real</span>
+              <span class="be-val text-success" id="be-receita-real">R$ 0,00</span>
+              <span class="be-sub" id="be-receita-sub">0 assinantes pagos</span>
+            </div>
+            <div class="be-stat">
+              <span class="be-label">Cobertura do Equilíbrio</span>
+              <span class="be-val text-primary" id="be-progresso-pct">0%</span>
+              <span class="be-sub" id="be-deficit">Déficit: -R$ 23.890,16</span>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <div
+              style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:6px; color:#475569;">
+              <span>Progresso para atingir o Break-Even</span>
+              <span id="be-progress-text">0% alcançado</span>
+            </div>
+            <div class="progress-track" style="height:10px; border-radius:5px;">
+              <div class="progress-fill" id="be-progress-bar"
+                style="width:0%; background:linear-gradient(90deg, #ea580c, #16a34a); border-radius:5px;"></div>
+            </div>
+          </div>
+
+          <!-- Metas por Plano para Atingir o Ponto de Equilíbrio -->
+          <div style="margin-top:18px;">
+            <div
+              style="font-size:12px; font-weight:700; color:#334155; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+              Assinaturas Necessárias para Cobrir os Custos (Cenários Isolados)
+            </div>
+            <div class="be-targets-grid">
+              <div class="be-target-card">
+                <div class="be-target-title"><span class="plan-pill pill-avancado">Básico</span></div>
+                <div class="be-target-price">R$ 60,00/mês</div>
+                <div class="be-target-qty" id="be-target-basico">399</div>
+                <div class="be-target-desc">assinantes necessários</div>
+              </div>
+              <div class="be-target-card">
+                <div class="be-target-title"><span class="plan-pill pill-premium">Premium</span></div>
+                <div class="be-target-price">R$ 100,00/mês</div>
+                <div class="be-target-qty" id="be-target-premium">239</div>
+                <div class="be-target-desc">assinantes necessários</div>
+              </div>
+              <div class="be-target-card">
+                <div class="be-target-title"><span class="plan-pill pill-empresa">Empresarial</span></div>
+                <div class="be-target-price">R$ 1.000,00/mês</div>
+                <div class="be-target-qty" id="be-target-empresa">24</div>
+                <div class="be-target-desc">assinantes necessários</div>
+              </div>
+              <div class="be-target-card highlighted">
+                <div class="be-target-title"><span class="plan-pill" style="background:#f1f5f9; color:#0f172a;">Cenário
+                    Misto</span></div>
+                <div class="be-target-price">Projeção Equilibrada</div>
+                <div class="be-target-mix">15 Emp. + 60 Prem. + 49 Básico</div>
+                <div class="be-target-desc">= R$ 23.940,00/mês (100,2%)</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- Tabela Oficial de Custos Estimados (12 Meses) -->
       <div class="admin-block">
         <div class="admin-block-header" style="background:#f8fafc;">
-          <span class="admin-block-title"><span class="material-symbols-rounded">money_off</span> Despesas
-            Estimadas</span>
-          <span class="finance-row-value negative" id="fin-despesas-total" style="font-size:16px;">—</span>
+          <span class="admin-block-title">
+            <span class="material-symbols-rounded" style="color:#e53935;">receipt_long</span>
+            Custo Estimado para 12 Meses de Operação Presencial
+          </span>
+          <span class="admin-block-badge" style="background:#fee2e2; color:#b71c1c;">Planejamento Financeiro</span>
         </div>
-        <div class="finance-row">
-          <span class="finance-row-label"><span class="material-symbols-rounded">cloud</span> Infraestrutura</span>
-          <span class="finance-row-value negative" id="fin-infra">—</span>
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="finance-custom-table">
+            <thead>
+              <tr>
+                <th style="width:24%;">Categoria</th>
+                <th style="width:40%;">Item</th>
+                <th style="width:18%; text-align:right;">Custo Mensal (R$)</th>
+                <th style="width:18%; text-align:right;">Custo Anual (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="admin-tabela-custos-body">
+              <!-- Renderizado via Admin._renderTabelaCustos() -->
+            </tbody>
+          </table>
         </div>
-        <div class="finance-row">
-          <span class="finance-row-label"><span class="material-symbols-rounded">smart_toy</span> API de IA /
-            Ollama</span>
-          <span class="finance-row-value negative" id="fin-ia">—</span>
-        </div>
-        <div class="finance-row">
-          <span class="finance-row-label"><span class="material-symbols-rounded">storage</span> Armazenamento</span>
-          <span class="finance-row-value negative" id="fin-storage">—</span>
-        </div>
-        <div class="finance-row">
-          <span class="finance-row-label"><span class="material-symbols-rounded">build</span> Suporte /
-            Manutenção</span>
-          <span class="finance-row-value negative" id="fin-suporte">—</span>
+        <div
+          style="padding:10px 16px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b;">
+          * Itens marcados com asterisco representam depreciação linear calculada no período de 24 meses de vida útil
+          dos equipamentos.
         </div>
       </div>
 
+      <!-- Demonstrativo do Período -->
       <div class="admin-block">
         <div class="admin-block-header" style="background:#f8fafc;">
-          <span class="admin-block-title"><span class="material-symbols-rounded">bar_chart</span> Resultado do
-            Período</span>
+          <span class="admin-block-title"><span class="material-symbols-rounded">bar_chart</span> Demonstrativo
+            Operacional</span>
         </div>
         <div class="finance-row">
-          <span class="finance-row-label">Receita Bruta</span>
+          <span class="finance-row-label">Receita Bruta Mensal (Assinaturas Reais)</span>
           <span class="finance-row-value positive" id="fin-result-receita">—</span>
         </div>
         <div class="finance-row">
-          <span class="finance-row-label">Total de Despesas</span>
-          <span class="finance-row-value negative" id="fin-result-despesas">—</span>
+          <span class="finance-row-label">Custo Operacional Mensal Total</span>
+          <span class="finance-row-value negative" id="fin-result-despesas">- R$ 23.890,16</span>
         </div>
         <div class="finance-row" style="background:#fff0f0; border-top:1px solid #fecaca;">
-          <span class="finance-row-label" style="font-weight:700; color:#b71c1c;">Lucro Líquido</span>
-          <span class="finance-row-value neutral" id="fin-result-lucro"
-            style="font-size:16px; font-weight:800;">—</span>
+          <span class="finance-row-label" style="font-weight:700; color:#b71c1c;">Resultado Líquido Mensal</span>
+          <span class="finance-row-value" id="fin-result-lucro" style="font-size:16px; font-weight:800;">—</span>
         </div>
         <div class="finance-row">
           <span class="finance-row-label">Receita Anual Projetada</span>
           <span class="finance-row-value positive" id="fin-anual">—</span>
         </div>
         <div class="finance-row">
-          <span class="finance-row-label">Lucro Anual Projetado</span>
-          <span class="finance-row-value positive" id="fin-lucro-anual">—</span>
+          <span class="finance-row-label">Custo Operacional Anual Total</span>
+          <span class="finance-row-value negative">- R$ 286.681,92</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-row-label">Resultado Anual Projetado</span>
+          <span class="finance-row-value" id="fin-lucro-anual">—</span>
         </div>
       </div>
 
-      <div class="admin-block" style="padding:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:13px; font-weight:700; color:#0f172a;">Margem de Lucro</span>
-          <span style="font-size:16px; font-weight:800; color:#e53935;" id="fin-margem-pct">—</span>
+      <!-- Receita por Plano -->
+      <div class="admin-block">
+        <div class="admin-block-header" style="background:#f8fafc;">
+          <span class="admin-block-title"><span class="material-symbols-rounded">payments</span> Detalhamento da Receita
+            por Plano</span>
+          <span class="finance-row-value positive" id="fin-receita-bruta" style="font-size:15px;">—</span>
         </div>
-        <div class="progress-track" style="margin-bottom:8px;">
-          <div class="progress-fill" id="fin-margem-bar" style="width:0%; background:#e53935;"></div>
+        <div id="fin-receita-por-plano">
+          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
         </div>
-        <div style="font-size:12px; color:#64748b;" id="fin-margem-desc">—</div>
       </div>
     </div>
 
     <!-- ════════════════════════════════════
-         TAB 3: USUÁRIOS
+         TAB 3: USUÁRIOS REAIS DO SISTEMA
          ════════════════════════════════════ -->
     <div id="panel-usuarios" class="admin-panel hidden">
+      <!-- KPIs dos Usuários -->
       <div class="kpi-grid">
         <div class="kpi-card" style="--kpi-accent: #e53935;">
-          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">person</span></div>
+          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">groups</span></div>
+          <div class="kpi-label">Total de Cadastros</div>
+          <div class="kpi-value" id="kpi-total-usuarios">—</div>
+          <div class="kpi-sub">Todas as contas reais</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #16a34a;">
+          <div class="kpi-icon-wrap" style="background:#dcfce7; color:#16a34a;"><span
+              class="material-symbols-rounded">psychiatry</span></div>
           <div class="kpi-label">Produtores Rurais</div>
           <div class="kpi-value" id="kpi-produtores">—</div>
+          <div class="kpi-sub">Contas de produtor</div>
         </div>
-        <div class="kpi-card" style="--kpi-accent: #b71c1c;">
-          <div class="kpi-icon-wrap"><span class="material-symbols-rounded">business</span></div>
-          <div class="kpi-label">Empresas</div>
+        <div class="kpi-card" style="--kpi-accent: #0284c7;">
+          <div class="kpi-icon-wrap" style="background:#e0f2fe; color:#0284c7;"><span
+              class="material-symbols-rounded">potted_plant</span></div>
+          <div class="kpi-label">Horta em Casa</div>
+          <div class="kpi-value" id="kpi-amadores">—</div>
+          <div class="kpi-sub">Contas amadoras</div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent: #d97706;">
+          <div class="kpi-icon-wrap" style="background:#fef3c7; color:#d97706;"><span
+              class="material-symbols-rounded">corporate_fare</span></div>
+          <div class="kpi-label">Empresas & Outros</div>
           <div class="kpi-value" id="kpi-empresas">—</div>
+          <div class="kpi-sub" id="kpi-outros-sub">—</div>
         </div>
       </div>
 
+      <!-- Tabela Principal de Usuários Reais -->
       <div class="admin-block">
-        <div class="admin-block-header">
-          <span class="admin-block-title"><span class="material-symbols-rounded">group</span> Todos os Usuários</span>
+        <div class="admin-block-header" style="flex-wrap:wrap; gap:10px;">
+          <span class="admin-block-title">
+            <span class="material-symbols-rounded">group</span>
+            Usuários Cadastrados no Sistema
+          </span>
           <span class="admin-block-badge" id="badge-total-users">—</span>
         </div>
-        <div id="admin-usuarios-list">
-          <div style="padding:20px; text-align:center; color:#94a3b8;">Carregando...</div>
+
+        <!-- Barra de Filtros e Busca -->
+        <div class="admin-users-toolbar">
+          <div class="admin-search-wrap">
+            <span class="material-symbols-rounded">search</span>
+            <input type="text" id="admin-user-search" placeholder="Buscar por nome ou e-mail..."
+              oninput="Admin.filterUsuarios()">
+          </div>
+          <div class="admin-filters-wrap">
+            <select id="admin-filter-tipo" onchange="Admin.filterUsuarios()" class="admin-select-filter">
+              <option value="">Todos os Tipos de Conta</option>
+              <option value="produtor">Produtor Rural</option>
+              <option value="amador">Horta em Casa / Amador</option>
+              <option value="empresa">Empresa</option>
+              <option value="funcionario">Funcionário</option>
+              <option value="admin">Administrador</option>
+            </select>
+            <select id="admin-filter-plano" onchange="Admin.filterUsuarios()" class="admin-select-filter">
+              <option value="">Todos os Planos</option>
+              <option value="Gratuito">Gratuito</option>
+              <option value="Básico">Básico</option>
+              <option value="Premium">Premium</option>
+              <option value="Empresarial">Empresarial</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabela de Usuários -->
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="admin-users-table">
+            <thead>
+              <tr>
+                <th style="min-width:220px;">Usuário (Nome / E-mail)</th>
+                <th style="min-width:140px;">Tipo de Conta</th>
+                <th style="min-width:120px;">Plano</th>
+                <th style="min-width:120px;">Data de Cadastro</th>
+                <th style="min-width:90px; text-align:center;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-usuarios-list">
+              <tr>
+                <td colspan="5" style="padding:24px; text-align:center; color:#94a3b8;">Carregando usuários...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
+      <!-- Assinaturas Ativas -->
       <div class="admin-block">
         <div class="admin-block-header">
           <span class="admin-block-title"><span class="material-symbols-rounded">inventory_2</span> Assinaturas
-            Ativas</span>
+            Vinculadas</span>
           <span class="admin-block-badge" id="badge-assinaturas">—</span>
         </div>
         <div id="admin-assinaturas-list">

@@ -100,6 +100,50 @@ async function _getDoc(coll, id) {
   return _docData(snap);
 }
 
+/**
+ * HELPER interno: resolve o ID do dono da conta (empregador_id se funcionário, ou o próprio userId).
+ * Permite passar um perfil em cache para evitar leituras extras ao Firestore.
+ * @param {string} userId
+ * @param {object|null} [perfilCache]
+ * @returns {Promise<string>}
+ */
+async function _resolverOwnerId(userId, perfilCache = null) {
+  if (!userId) return userId;
+
+  if (perfilCache) {
+    if (perfilCache.tipo === 'funcionario') {
+      return perfilCache.empregador_id || perfilCache.empresa_id || userId;
+    }
+    return userId;
+  }
+
+  try {
+    if (typeof App !== 'undefined' && typeof App.getSession === 'function') {
+      const sess = App.getSession();
+      if (sess?.usuario && String(sess.usuario.id) === String(userId)) {
+        if (sess.usuario.tipo === 'funcionario') {
+          return sess.usuario.empregador_id || sess.usuario.empresa_id || userId;
+        }
+        return userId;
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const snap = await db.collection('usuarios').doc(String(userId)).get();
+    if (snap.exists) {
+      const dados = snap.data();
+      if (dados.tipo === 'funcionario') {
+        return dados.empregador_id || dados.empresa_id || userId;
+      }
+    }
+  } catch (err) {
+    console.warn('[_resolverOwnerId] Erro ao consultar perfil:', err.message);
+  }
+
+  return userId;
+}
+
 // ============================================================
 // HELPER interno: monta o objeto de sessão (usuario + assinatura + plano)
 // a partir de um usuário autenticado no Firebase Auth.
@@ -117,17 +161,33 @@ async function _carregarSessao(user) {
     throw new Error('Conta desativada. Contate o suporte.');
   }
 
-  const assinatura = await _getAssinatura(user.uid);
-  const plano = _getPlano(assinatura?.plano_id);
+  // Garantir que a conta oficial admin tenha tipo 'admin'
+  if (user.email === 'admin@tomeye.com' || perfil.email === 'admin@tomeye.com') {
+    perfil.tipo = 'admin';
+    if (perfilSnap.data()?.tipo !== 'admin') {
+      db.collection('usuarios').doc(user.uid).update({ tipo: 'admin' }).catch(() => {});
+    }
+  }
+
+  const ownerId = await _resolverOwnerId(user.uid, perfil);
+  const assinatura = await _getAssinatura(ownerId);
+  const plano = _getPlano(assinatura?.plano_id ?? perfil.plano_id);
 
   // Buscar contagem real de fazendas para o dashboard
   let fazendasCount = 0;
   try {
-    const fazSnap = await db.collection('fazendas')
-      .where('usuario_id', '==', user.uid)
-      .where('ativa', '==', true)
-      .get();
-    fazendasCount = fazSnap.size;
+    if (perfil.tipo === 'funcionario' && perfil.fazenda_id) {
+      const fazSnap = await db.collection('fazendas').doc(perfil.fazenda_id).get();
+      if (fazSnap.exists && fazSnap.data().ativa) {
+        fazendasCount = 1;
+      }
+    } else {
+      const fazSnap = await db.collection('fazendas')
+        .where('usuario_id', '==', ownerId)
+        .where('ativa', '==', true)
+        .get();
+      fazendasCount = fazSnap.size;
+    }
   } catch (e) {
     console.warn('[API] Erro ao contar fazendas na sessão:', e.message);
   }
@@ -155,14 +215,16 @@ const PlanosHelper = {
    * @returns {Promise<{plano, assinatura, fazendasAtuais, funcionariosAtuais, analises_utilizadas, limites}>}
    */
   async getLimitesUsuario(userId) {
+    const ownerId = await _resolverOwnerId(userId);
+
     const [assinatura, fazSnap, funcSnap] = await Promise.all([
-      _getAssinatura(userId),
+      _getAssinatura(ownerId),
       db.collection('fazendas')
-        .where('usuario_id', '==', userId)
+        .where('usuario_id', '==', ownerId)
         .where('ativa', '==', true)
         .get(),
       db.collection('funcionarios')
-        .where('empresa_id', '==', userId)
+        .where('empresa_id', '==', ownerId)
         .where('ativo', '==', true)
         .get(),
     ]);
@@ -855,6 +917,9 @@ const PerfilAPI = {
     const snap = await db.collection('usuarios').doc(userId).get();
     if (!snap.exists) throw new Error('Usuário não encontrado.');
     const perfil = { id: snap.id, ...snap.data() };
+    if (perfil.email === 'admin@tomeye.com') {
+      perfil.tipo = 'admin';
+    }
 
     // Se funcionário, herdar assinatura do empregador
     const assinaturaOwnerId = (perfil.tipo === 'funcionario' && perfil.empregador_id)
@@ -872,6 +937,58 @@ const PerfilAPI = {
     const { senha, senha_hash, id, ...dadosLimpos } = dados;
     await db.collection('usuarios').doc(userId).update(dadosLimpos);
     return { mensagem: 'Perfil atualizado com sucesso!' };
+  },
+
+  /**
+   * BUG 4 FIX: Atualiza o e-mail no Firebase Auth quando o usuário
+   * altera o e-mail do perfil. Sem isso, o login continua exigindo
+   * o e-mail antigo.
+   * Também atualiza o senha_backup_otp (criptografado com o e-mail).
+   * @param {string} userId
+   * @param {string} novoEmail
+   */
+  async atualizarEmail(userId, novoEmail) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Usuário não autenticado.');
+
+    const emailAtual = user.email;
+    const novoEmailNorm = novoEmail.trim().toLowerCase();
+
+    // Só atualiza se realmente mudou
+    if (emailAtual.toLowerCase() === novoEmailNorm) return;
+
+    // Atualizar e-mail no Firebase Auth
+    // updateEmail pode exigir re-autenticação recente.
+    // verifyBeforeUpdateEmail envia verificação antes de trocar (mais seguro),
+    // mas para simplificar usamos updateEmail diretamente.
+    try {
+      await user.updateEmail(novoEmailNorm);
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+        throw new Error('Por segurança, faça login novamente antes de alterar o e-mail.');
+      }
+      throw new Error('Erro ao atualizar e-mail de login: ' + err.message);
+    }
+
+    // Atualizar o senha_backup_otp (criptografado com o e-mail)
+    // para que a recuperação por OTP continue funcionando com o novo e-mail
+    try {
+      const docSnap = await db.collection('usuarios').doc(userId).get();
+      if (docSnap.exists) {
+        const dados = docSnap.data();
+        if (dados.senha_backup_otp) {
+          // Decriptografar com e-mail antigo e re-criptografar com novo
+          const senhaPlain = await _decriptografar(dados.senha_backup_otp, emailAtual.toLowerCase());
+          const novoBackup = await _criptografar(senhaPlain, novoEmailNorm);
+          await db.collection('usuarios').doc(userId).update({
+            senha_backup_otp: novoBackup,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[PerfilAPI] Não foi possível atualizar senha_backup_otp:', e.message);
+      // Não bloquear a operação — o e-mail já foi atualizado no Auth
+    }
   },
 
   async alterarSenha(userId, senhaAtual, novaSenha) {
@@ -925,15 +1042,22 @@ const FazendasAPI = {
     const userSnap = await db.collection('usuarios').doc(userId).get();
     const user = userSnap.exists ? userSnap.data() : null;
 
-    if (user && user.tipo === 'funcionario' && user.fazenda_id) {
-      // Funcionário: buscar fazenda pelo doc ID (não por campo 'id')
-      const fazSnap = await db.collection('fazendas').doc(user.fazenda_id).get();
-      if (fazSnap.exists) return [_docData(fazSnap)];
-      return [];
+    if (user && user.tipo === 'funcionario') {
+      if (user.fazenda_id) {
+        // Funcionário: buscar fazenda vinculada pelo doc ID
+        const fazSnap = await db.collection('fazendas').doc(user.fazenda_id).get();
+        if (fazSnap.exists) return [_docData(fazSnap)];
+      }
+
+      // Funcionário sem fazenda específica ou fazenda não encontrada: listar fazendas ativas do empregador
+      const ownerId = user.empregador_id || user.empresa_id || userId;
+      const snap = await db.collection('fazendas')
+        .where('usuario_id', '==', ownerId)
+        .where('ativa', '==', true)
+        .get();
+      return _colData(snap);
     } else {
       // Produtor/Empresa: listar fazendas ativas do usuário
-      // Índice composto necessário: usuario_id + ativa
-      // Na primeira execução o Firebase exibe no console um link para criá-lo.
       const snap = await db.collection('fazendas')
         .where('usuario_id', '==', userId)
         .where('ativa', '==', true)
@@ -1048,12 +1172,46 @@ const FuncionariosAPI = {
     const session = App.getSession();
     const empregadorId = session.usuario.id;
 
-    // Criar conta no Firebase Auth
-    const cred = await auth.createUserWithEmailAndPassword(dados.email.trim(), dados.senha);
-    const uid = cred.user.uid;
+    // ── BUG 3 FIX ────────────────────────────────────────────────
+    // Firebase Auth troca automaticamente o currentUser ao chamar
+    // createUserWithEmailAndPassword(). Isso causa "Missing or
+    // insufficient permission" porque o auth.uid deixa de ser o
+    // empregador.
+    //
+    // Solução: criar um app Firebase secundário exclusivo para a
+    // criação de conta. O auth principal permanece inalterado.
+    // As Firestore Rules são ajustadas para permitir que o
+    // empregador crie o doc em /usuarios quando o novo doc
+    // tem tipo='funcionario' e empregador_id == auth.uid.
+    // ──────────────────────────────────────────────────────────────
+
+    let secondaryApp;
+    try {
+      secondaryApp = firebase.apps.find(a => a.name === 'funcCreator')
+        || firebase.initializeApp(firebase.app().options, 'funcCreator');
+    } catch (e) {
+      secondaryApp = firebase.app('funcCreator');
+    }
+
+    const secondaryAuth = secondaryApp.auth();
+    let funcCred;
 
     try {
-      // Criar perfil do funcionário
+      // Criar conta no Auth via app secundário (não afeta auth principal)
+      funcCred = await secondaryAuth.createUserWithEmailAndPassword(
+        dados.email.trim(), dados.senha
+      );
+    } catch (err) {
+      throw new Error('Erro ao criar conta do funcionário: ' + err.message);
+    }
+
+    const uid = funcCred.user.uid;
+
+    try {
+      // auth.currentUser ainda é o empregador ✓
+
+      // Criar perfil do funcionário em /usuarios/{uid}
+      // (Firestore Rule permite: auth.uid == empregador_id E tipo == 'funcionario')
       await db.collection('usuarios').doc(uid).set({
         nome: dados.nome,
         tipo: 'funcionario',
@@ -1068,7 +1226,7 @@ const FuncionariosAPI = {
         created_at: _now(),
       });
 
-      // Criar vínculo de funcionário
+      // Criar vínculo em /funcionarios (empresa_id == auth.uid ✓)
       const funcRef = await db.collection('funcionarios').add({
         empresa_id: empregadorId,
         usuario_id: uid,
@@ -1087,13 +1245,18 @@ const FuncionariosAPI = {
         created_at: _now(),
       });
 
+      // Fazer sign-out do app secundário (limpeza)
+      await secondaryAuth.signOut();
+
       return {
         funcionario: { id: funcRef.id },
         mensagem: 'Conta criada e funcionário adicionado com sucesso!',
       };
 
     } catch (err) {
-      await cred.user.delete().catch(() => { });
+      // Limpar: deletar conta do func criada no Auth
+      await funcCred.user.delete().catch(() => { });
+      await secondaryAuth.signOut().catch(() => { });
       throw err;
     }
   },
@@ -1139,11 +1302,13 @@ const FuncionariosAPI = {
 const AnalisesAPI = {
 
   async listar(userId, filtros = {}) {
+    const ownerId = await _resolverOwnerId(userId);
+
     // Filtro e ordenação feitos no próprio Firestore.
     // IMPORTANTE: queries com where() + orderBy() em campos diferentes exigem
     // índice composto no Firestore. Se der erro, clique no link do console
     // para criar o índice automaticamente.
-    let query = db.collection('analises').where('usuario_id', '==', userId);
+    let query = db.collection('analises').where('usuario_id', '==', ownerId);
 
     const temFiltroData = filtros.data_inicio || filtros.data_fim;
 
@@ -1165,18 +1330,34 @@ const AnalisesAPI = {
       // Fallback nível 1: busca sem orderBy caso o índice composto não exista
       console.warn('[AnalisesAPI] Índice composto ausente, buscando sem ordenação:', indexErr.message);
       try {
-        let fallbackQuery = db.collection('analises').where('usuario_id', '==', userId);
+        let fallbackQuery = db.collection('analises').where('usuario_id', '==', ownerId);
         if (filtros.data_inicio) fallbackQuery = fallbackQuery.where('created_at', '>=', filtros.data_inicio);
         if (filtros.data_fim) fallbackQuery = fallbackQuery.where('created_at', '<=', filtros.data_fim + 'T23:59:59');
         snap = await fallbackQuery.get();
       } catch (fallbackErr) {
         // Fallback nível 2: buscar tudo e filtrar em memória (funciona sempre)
         console.warn('[AnalisesAPI] Fallback com filtro de data falhou, buscando tudo e filtrando em memória:', fallbackErr.message);
-        snap = await db.collection('analises').where('usuario_id', '==', userId).get();
+        snap = await db.collection('analises').where('usuario_id', '==', ownerId).get();
       }
     }
 
     let analises = _colData(snap);
+
+    // Se o usuário logado for funcionário com fazenda vinculada, dar preferência às análises da fazenda dele
+    if (ownerId !== userId) {
+      try {
+        const uSnap = await db.collection('usuarios').doc(userId).get();
+        const uData = uSnap.exists ? uSnap.data() : null;
+        if (uData?.fazenda_id) {
+          const analisesFazenda = analises.filter(a => String(a.fazenda_id) === String(uData.fazenda_id));
+          if (analisesFazenda.length > 0) {
+            analises = analisesFazenda;
+          }
+        }
+      } catch (e) {
+        console.warn('[AnalisesAPI] Erro ao filtrar por fazenda do funcionário:', e.message);
+      }
+    }
 
     // Ordenação em memória como garantia extra
     analises.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -1222,8 +1403,11 @@ const AnalisesAPI = {
    * `dados` deve incluir ao menos: usuario_id, doenca_nome, fazenda_id (opcional).
    */
   async criar(dados) {
+    const ownerId = dados.usuario_id ? await _resolverOwnerId(dados.usuario_id) : null;
     const nova = {
       ...dados,
+      usuario_id: ownerId || dados.usuario_id,
+      criado_por: dados.usuario_id || null,
       created_at: dados.created_at || _now(),
     };
     const ref = await db.collection('analises').add(nova);
@@ -1236,7 +1420,8 @@ const AnalisesAPI = {
   },
 
   async excluirTodas(userId) {
-    const snap = await db.collection('analises').where('usuario_id', '==', userId).get();
+    const ownerId = await _resolverOwnerId(userId);
+    const snap = await db.collection('analises').where('usuario_id', '==', ownerId).get();
     const batch = db.batch();
     snap.docs.forEach(d => batch.delete(d.ref));
     await batch.commit();
@@ -1254,22 +1439,24 @@ const AssinaturasAPI = {
   },
 
   async obterAssinatura(userId) {
-    const assinatura = await _getAssinatura(userId);
+    const ownerId = await _resolverOwnerId(userId);
+    const assinatura = await _getAssinatura(ownerId);
     const plano = _getPlano(assinatura?.plano_id);
     return { assinatura, plano };
   },
 
   async contratarPlano(userId, planoId, tipo) {
+    const ownerId = await _resolverOwnerId(userId);
     const plano = PLANOS.find(p => p.id === planoId);
     if (!plano) throw new Error('Plano não encontrado.');
 
     const snap = await db.collection('assinaturas')
-      .where('usuario_id', '==', userId)
+      .where('usuario_id', '==', ownerId)
       .limit(1)
       .get();
 
     const novaAssinatura = {
-      usuario_id: userId,
+      usuario_id: ownerId,
       plano_id: planoId,
       status: 'ativa',
       tipo,
@@ -1299,8 +1486,9 @@ const AssinaturasAPI = {
    * chamadas concorrentes.
    */
   async incrementarUso(userId) {
+    const ownerId = await _resolverOwnerId(userId);
     const snap = await db.collection('assinaturas')
-      .where('usuario_id', '==', userId)
+      .where('usuario_id', '==', ownerId)
       .limit(1)
       .get();
     if (snap.empty) throw new Error('Assinatura não encontrada.');
@@ -1318,10 +1506,25 @@ const AssinaturasAPI = {
 const NotificacoesAPI = {
 
   async listar(userId) {
-    const snap = await db.collection('notificacoes')
-      .where('usuario_id', '==', userId)
-      .get();
-    let notificacoes = _colData(snap);
+    const ownerId = await _resolverOwnerId(userId);
+    let notificacoes = [];
+
+    if (ownerId === userId) {
+      const snap = await db.collection('notificacoes')
+        .where('usuario_id', '==', userId)
+        .get();
+      notificacoes = _colData(snap);
+    } else {
+      // Funcionário: buscar notificações do empregador e do próprio funcionário
+      const [snapOwner, snapUser] = await Promise.all([
+        db.collection('notificacoes').where('usuario_id', '==', ownerId).get(),
+        db.collection('notificacoes').where('usuario_id', '==', userId).get(),
+      ]);
+      const mapa = new Map();
+      _colData(snapOwner).forEach(n => mapa.set(n.id, n));
+      _colData(snapUser).forEach(n => mapa.set(n.id, n));
+      notificacoes = Array.from(mapa.values());
+    }
 
     // Ordenar e limitar em memória
     notificacoes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -1348,12 +1551,15 @@ const NotificacoesAPI = {
   },
 
   async marcarTodasLidas(userId) {
-    const snap = await db.collection('notificacoes')
-      .where('usuario_id', '==', userId)
-      .where('lida', '==', false)
-      .get();
+    const ownerId = await _resolverOwnerId(userId);
+    const targets = ownerId === userId ? [userId] : [userId, ownerId];
+    const snaps = await Promise.all(
+      targets.map(id => db.collection('notificacoes').where('usuario_id', '==', id).where('lida', '==', false).get())
+    );
     const batch = db.batch();
-    snap.docs.forEach(d => batch.update(d.ref, { lida: true }));
+    snaps.forEach(snap => {
+      snap.docs.forEach(d => batch.update(d.ref, { lida: true }));
+    });
     await batch.commit();
     return { mensagem: 'Todas as notificações marcadas como lidas.' };
   },
@@ -1364,11 +1570,23 @@ const NotificacoesAPI = {
   },
 
   async contarNaoLidas(userId) {
-    const snap = await db.collection('notificacoes')
-      .where('usuario_id', '==', userId)
-      .where('lida', '==', false)
-      .get();
-    return snap.size;
+    const ownerId = await _resolverOwnerId(userId);
+    if (ownerId === userId) {
+      const snap = await db.collection('notificacoes')
+        .where('usuario_id', '==', userId)
+        .where('lida', '==', false)
+        .get();
+      return snap.size;
+    } else {
+      const [snapOwner, snapUser] = await Promise.all([
+        db.collection('notificacoes').where('usuario_id', '==', ownerId).where('lida', '==', false).get(),
+        db.collection('notificacoes').where('usuario_id', '==', userId).where('lida', '==', false).get(),
+      ]);
+      const mapa = new Set();
+      snapOwner.docs.forEach(d => mapa.add(d.id));
+      snapUser.docs.forEach(d => mapa.add(d.id));
+      return mapa.size;
+    }
   },
 };
 
@@ -1475,21 +1693,22 @@ const DoencasAPI = {
 const AdminAPI = {
 
   async getMetricas() {
-    let usuarios = [];
+    let todosUsuarios = [];
     let analisesCount = 0;
     let assinaturas = [];
     let doencasCount = 0;
 
-    // Buscar IDs de usuários admin para filtrar assinaturas
     const adminIds = new Set();
     try {
       const uSnap = await db.collection('usuarios').get();
-      const todosUsuarios = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      todosUsuarios = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       todosUsuarios.forEach(u => {
         if (u.tipo === 'admin') adminIds.add(u.id);
       });
-      usuarios = todosUsuarios.filter(u => u.tipo !== 'admin' && u.ativo !== false);
-    } catch (e) { console.warn('[AdminAPI] Erro ao buscar usuários:', e.message); }
+    } catch (e) {
+      console.error('[AdminAPI] Erro ao buscar usuários para métricas:', e);
+      throw e;
+    }
 
     try {
       const aSnap = await db.collection('analises').get();
@@ -1498,7 +1717,7 @@ const AdminAPI = {
 
     try {
       const assSnap = await db.collection('assinaturas').get();
-      // Filtrar assinaturas de admins
+      // Assinaturas ativas para cálculo de métricas
       assinaturas = assSnap.docs.map(d => d.data()).filter(a => !adminIds.has(a.usuario_id));
     } catch (e) { console.warn('[AdminAPI] Erro ao buscar assinaturas:', e.message); }
 
@@ -1523,7 +1742,7 @@ const AdminAPI = {
     });
 
     return {
-      totalUsuarios: usuarios.length,
+      totalUsuarios: todosUsuarios.length,
       distribuicaoPlanos,
       receitaMensal: parseFloat(receitaMensal.toFixed(2)),
       receitaAnualEstimada: parseFloat((receitaMensal * 12).toFixed(2)),
@@ -1534,29 +1753,89 @@ const AdminAPI = {
 
   async getUsuarios() {
     try {
+      // 1. Buscar todos os usuários reais diretamente do Firestore
       const snap = await db.collection('usuarios').get();
-      const usuarios = _colData(snap).filter(u => u.ativo !== false);
+      const docsUsuarios = _colData(snap);
 
-      return Promise.all(usuarios.map(async u => {
-        try {
-          const assinatura = await _getAssinatura(u.id);
-          const plano = _getPlano(assinatura?.plano_id ?? u.plano_id);
-          return {
-            ...u,
-            plano_nome: plano?.nome || 'Gratuito',
-            assinatura_tipo: assinatura?.tipo || 'gratuito',
-          };
-        } catch (err) {
-          return {
-            ...u,
-            plano_nome: 'Gratuito',
-            assinatura_tipo: 'gratuito',
-          };
+      // 2. Buscar todas as assinaturas em lote para enriquecer sem N chamadas
+      let assinaturasPorUsuario = {};
+      try {
+        const assSnap = await db.collection('assinaturas').get();
+        assSnap.docs.forEach(d => {
+          const ass = d.data();
+          if (ass.usuario_id) {
+            assinaturasPorUsuario[ass.usuario_id] = ass;
+          }
+        });
+      } catch (errAss) {
+        console.warn('[AdminAPI] Não foi possível carregar assinaturas em lote:', errAss.message);
+      }
+
+      // Mapeamento dos tipos de conta para rótulo legível
+      const mapTipos = {
+        'produtor': 'Produtor Rural',
+        'amador': 'Horta em Casa / Amador',
+        'empresa': 'Empresa',
+        'funcionario': 'Funcionário',
+        'admin': 'Administrador',
+      };
+
+      // 3. Montar lista completa e fiel com todos os campos solicitados
+      const usuariosCompletos = docsUsuarios.map(u => {
+        const ass = assinaturasPorUsuario[u.id];
+        const planoId = ass?.plano_id ?? u.plano_id ?? 1;
+        const plano = _getPlano(planoId);
+
+        // Data de cadastro formatada
+        let dataCadastroFormatada = '—';
+        let dataCadastroRaw = u.created_at || u.data_cadastro || u.criado_em || null;
+        if (dataCadastroRaw) {
+          try {
+            const dataObj = typeof dataCadastroRaw.toDate === 'function'
+              ? dataCadastroRaw.toDate()
+              : new Date(dataCadastroRaw);
+            if (!isNaN(dataObj.getTime())) {
+              dataCadastroFormatada = dataObj.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              });
+            }
+          } catch (e) { }
         }
-      }));
+
+        const isAtivo = u.ativo !== false;
+
+        return {
+          id: u.id,
+          nome: u.nome || 'Sem Nome',
+          email: u.email || 'Sem E-mail',
+          tipo: u.tipo || 'amador',
+          tipo_formatado: mapTipos[u.tipo] || (u.tipo ? u.tipo.charAt(0).toUpperCase() + u.tipo.slice(1) : 'Amador'),
+          plano_id: planoId,
+          plano_nome: plano?.nome || (planoId === 1 ? 'Gratuito' : planoId === 2 ? 'Básico' : planoId === 3 ? 'Premium' : planoId === 4 ? 'Empresarial' : 'Gratuito'),
+          assinatura_tipo: ass?.tipo || (planoId === 1 ? 'gratuito' : 'mensal'),
+          data_cadastro: dataCadastroFormatada,
+          data_cadastro_raw: dataCadastroRaw,
+          ativo: isAtivo,
+          status: isAtivo ? 'ativo' : 'inativo',
+          status_formatado: isAtivo ? 'Ativo' : 'Inativo',
+          telefone: u.telefone || null,
+          cpf_cnpj: u.cpf_display || u.cpf_cnpj || null,
+        };
+      });
+
+      // Ordenar: mais recentes primeiro (quando houver data)
+      usuariosCompletos.sort((a, b) => {
+        const timeA = a.data_cadastro_raw ? new Date(a.data_cadastro_raw).getTime() : 0;
+        const timeB = b.data_cadastro_raw ? new Date(b.data_cadastro_raw).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      return usuariosCompletos;
     } catch (err) {
-      console.warn('[AdminAPI] Erro ao buscar lista de usuários:', err.message);
-      return [];
+      console.error('[AdminAPI] Erro ao buscar lista de usuários:', err);
+      throw err;
     }
   },
 

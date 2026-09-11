@@ -184,3 +184,74 @@ test('UNIT-030 - Plano Empresarial deve possuir suporte prioritário', () => {
     contexto._getPlano(4).recursos.includes('suporte_prioritario')
   );
 });
+
+
+// ==========================================
+// UNIT - DADOS FINANCEIROS & PONTO DE EQUILÍBRIO
+// ==========================================
+
+const codigoAdmin =
+  readFileSync('./js/admin.js', 'utf8') +
+  '\nthis.Admin = Admin;';
+
+const contextoAdmin = {
+  console,
+  setTimeout,
+  clearTimeout,
+  document: {
+    addEventListener: () => {},
+    getElementById: () => null,
+    querySelectorAll: () => [],
+  },
+  window: {},
+  location: { pathname: '' },
+};
+
+vm.createContext(contextoAdmin);
+vm.runInContext(codigoAdmin, contextoAdmin);
+
+test('UNIT-031 - Custo subtotal mensal deve ser R$ 21.718,33', () => {
+  assert.equal(contextoAdmin.Admin.FINANCEIRO_PROJETO.subtotalMensal, 21718.33);
+});
+
+test('UNIT-032 - Custo subtotal anual deve ser R$ 260.619,96', () => {
+  assert.equal(contextoAdmin.Admin.FINANCEIRO_PROJETO.subtotalAnual, 260619.96);
+});
+
+test('UNIT-033 - Reserva de contingência mensal (10%) deve ser R$ 2.171,83', () => {
+  assert.equal(contextoAdmin.Admin.FINANCEIRO_PROJETO.contingenciaMensal, 2171.83);
+});
+
+test('UNIT-034 - Custo total estimado mensal deve ser R$ 23.890,16', () => {
+  assert.equal(contextoAdmin.Admin.FINANCEIRO_PROJETO.custoMensalTotal, 23890.16);
+});
+
+test('UNIT-035 - Custo total estimado anual deve ser R$ 286.681,92', () => {
+  assert.equal(contextoAdmin.Admin.FINANCEIRO_PROJETO.custoAnualTotal, 286681.92);
+});
+
+test('UNIT-036 - Soma dos 11 itens mensais deve igualar o subtotal', () => {
+  const soma = contextoAdmin.Admin.FINANCEIRO_PROJETO.itens.reduce((s, item) => s + item.mensal, 0);
+  assert.equal(parseFloat(soma.toFixed(2)), 21718.33);
+});
+
+test('UNIT-037 - Ponto de equilíbrio: Básico precisa de 399 assinantes', () => {
+  const meta = Math.ceil(contextoAdmin.Admin.FINANCEIRO_PROJETO.custoMensalTotal / 60);
+  assert.equal(meta, 399);
+});
+
+test('UNIT-038 - Ponto de equilíbrio: Premium precisa de 239 assinantes', () => {
+  const meta = Math.ceil(contextoAdmin.Admin.FINANCEIRO_PROJETO.custoMensalTotal / 100);
+  assert.equal(meta, 239);
+});
+
+test('UNIT-039 - Ponto de equilíbrio: Empresarial precisa de 24 assinantes', () => {
+  const meta = Math.ceil(contextoAdmin.Admin.FINANCEIRO_PROJETO.custoMensalTotal / 1000);
+  assert.equal(meta, 24);
+});
+
+test('UNIT-040 - Cenário Misto cobre 100% dos custos', () => {
+  const receita = (15 * 1000) + (60 * 100) + (49 * 60);
+  assert.ok(receita >= contextoAdmin.Admin.FINANCEIRO_PROJETO.custoMensalTotal);
+});
+

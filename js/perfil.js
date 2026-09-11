@@ -276,6 +276,12 @@ const Perfil = {
       btn.textContent = 'Salvando...';
 
       const userId = App.getUserId();
+
+      // BUG 4 FIX: sincronizar e-mail com Firebase Auth antes de salvar no Firestore
+      if (this._data && dados.email && dados.email.toLowerCase() !== (this._data.usuario.email || '').toLowerCase()) {
+        await PerfilAPI.atualizarEmail(userId, dados.email);
+      }
+
       await PerfilAPI.atualizar(userId, dados);
 
       // Atualizar sessão local
@@ -548,6 +554,11 @@ const Perfil = {
 
           await PerfilAPI.alterarSenha(userId, senhaAtual, senhaNova);
           App.showToast('Senha alterada com sucesso!', 'success');
+        }
+
+        // BUG 4 FIX: sincronizar e-mail com Firebase Auth antes de salvar no Firestore
+        if (novoEmail && novoEmail.toLowerCase() !== (usuario.email || '').toLowerCase()) {
+          await PerfilAPI.atualizarEmail(userId, novoEmail);
         }
 
         // Salvar dados do perfil

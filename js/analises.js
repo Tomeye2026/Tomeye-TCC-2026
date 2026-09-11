@@ -623,19 +623,23 @@ const Analises = {
   // ===========================================================
 
   async initRelatorio() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const analiseId = urlParams.get('id');
+    const isShared = urlParams.get('shared') === 'true';
+
+    // BUG 5 FIX: links compartilhados não exigem que o viewer seja o dono.
+    // Para links compartilhados, ainda exigimos login (Firestore Rules).
     if (!(await App.requireAuthAsync())) return;
     App.renderBottomNav('');
 
     const resultadoJson = sessionStorage.getItem('tomeye_analise_resultado');
-    const urlParams = new URLSearchParams(window.location.search);
-    const analiseId = urlParams.get('id');
 
     if (resultadoJson) {
       const resultado = JSON.parse(resultadoJson);
       sessionStorage.removeItem('tomeye_analise_resultado');
       Analises._renderRelatorio(resultado);
     } else if (analiseId) {
-      await Analises._loadRelatorio(analiseId); // ID do Firestore é string
+      await Analises._loadRelatorio(analiseId, isShared);
     } else {
       App.showToast('Nenhuma análise para exibir.', 'warning');
       setTimeout(() => App.navigate('dashboard.html'), 1500);
@@ -644,12 +648,16 @@ const Analises = {
     Analises._setupRelatorioActions();
   },
 
-  async _loadRelatorio(analiseId) {
+  async _loadRelatorio(analiseId, isShared = false) {
     try {
       const data = await AnalisesAPI.obter(analiseId);
       Analises._renderRelatorio(data);
     } catch (e) {
-      App.showToast('Erro ao carregar relatório.', 'error');
+      if (isShared) {
+        App.showToast('Este relatório não está disponível ou não foi compartilhado.', 'error');
+      } else {
+        App.showToast('Erro ao carregar relatório.', 'error');
+      }
     }
   },
 
@@ -659,9 +667,10 @@ const Analises = {
     // ── Imagem (RF5) ──
     const imgContainer = document.getElementById('relatorio-imagem-container');
     if (imgContainer && analise.imagem_url) {
+      // BUG 6 FIX: não renderizar o botão de excluir imagem (lixeira vermelha)
+      // na tela de relatório — ele não deveria estar visível nessa tela.
       imgContainer.innerHTML = `
         <img src="${analise.imagem_url}" alt="Imagem analisada" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
-        <button class="img-delete-btn" id="btn-excluir-imagem" title="Excluir imagem desta análise" aria-label="Excluir imagem"><span class="material-symbols-rounded" style="font-size:18px;">delete</span></button>
       `;
     }
 
@@ -871,17 +880,36 @@ const Analises = {
       });
     }
 
-    // ── Botão compartilhar ──
+    // ── Botão compartilhar (BUG 5 FIX) ──
     const btnCompartilhar = document.getElementById('btn-compartilhar');
     if (btnCompartilhar) {
       btnCompartilhar.addEventListener('click', async () => {
+        // Marcar análise como compartilhada no Firestore
+        const analiseId = Analises._currentAnaliseId;
+        if (analiseId) {
+          try {
+            await db.collection('analises').doc(analiseId).update({ compartilhado: true });
+          } catch (e) {
+            console.warn('[Analises] Erro ao marcar como compartilhado:', e.message);
+          }
+        }
+
+        // Construir URL de compartilhamento com parâmetro shared=true
+        const shareUrl = new URL(window.location.href);
+        shareUrl.searchParams.set('shared', 'true');
+        const shareLink = shareUrl.toString();
+
         if (navigator.share) {
           try {
-            await navigator.share({ title: 'Relatório Tomeye', url: window.location.href });
+            await navigator.share({ title: 'Relatório Tomeye', url: shareLink });
           } catch { }
         } else {
-          try { await navigator.clipboard.writeText(window.location.href); App.showToast('Link copiado!', 'success'); }
-          catch { App.showToast('Não foi possível compartilhar.', 'info'); }
+          try {
+            await navigator.clipboard.writeText(shareLink);
+            App.showToast('Link copiado!', 'success');
+          } catch {
+            App.showToast('Não foi possível compartilhar.', 'info');
+          }
         }
       });
     }

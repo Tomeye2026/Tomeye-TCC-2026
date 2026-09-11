@@ -7,14 +7,31 @@
 const Admin = {
 
   // Despesas operacionais fixas estimadas (R$/mês)
-  DESPESAS: {
-    infra: 350.00,
-    ia: 120.00,
-    storage: 80.00,
-    suporte: 200.00,
+  // Tabela oficial de custos para 12 meses de operação presencial
+  FINANCEIRO_PROJETO: {
+    custoMensalTotal: 23890.16,
+    custoAnualTotal: 286681.92,
+    subtotalMensal: 21718.33,
+    subtotalAnual: 260619.96,
+    contingenciaMensal: 2171.83,
+    contingenciaAnual: 26061.96,
+    itens: [
+      { categoria: 'Infraestrutura Física', item: 'Aluguel de sala/escritório', mensal: 1100.00, anual: 13200.00 },
+      { categoria: 'Infraestrutura Física', item: 'Energia elétrica', mensal: 280.00, anual: 3360.00 },
+      { categoria: 'Infraestrutura Física', item: 'Internet (fibra, plano empresarial)', mensal: 180.00, anual: 2160.00 },
+      { categoria: 'Infraestrutura Física', item: 'Água e saneamento', mensal: 100.00, anual: 1200.00 },
+      { categoria: 'Equipamentos', item: 'Notebooks, 9 unidades (R$183,00 cada)*', mensal: 1647.00, anual: 19764.00, depreciacao: true },
+      { categoria: 'Equipamentos', item: 'Celular para coleta de imagens*', mensal: 75.00, anual: 900.00, depreciacao: true },
+      { categoria: 'Software e Serviços', item: 'Hospedagem web (plano Business)', mensal: 33.00, anual: 396.00 },
+      { categoria: 'Software e Serviços', item: 'Domínio .com.br (Registro.br)', mensal: 3.33, anual: 40.00 },
+      { categoria: 'Software e Serviços', item: 'Ferramentas de desenvolvimento e API de IA', mensal: 150.00, anual: 1800.00 },
+      { categoria: 'Recursos Humanos', item: 'Equipe de desenvolvimento, 9 pessoas (R$2.000,00/pessoa)', mensal: 18000.00, anual: 216000.00 },
+      { categoria: 'Marketing e Divulgação', item: 'Material impresso e digital', mensal: 150.00, anual: 1800.00 },
+    ],
   },
 
   _doencasCache: [],
+  _usuariosCache: [],
 
   // ============================================================
   // INICIALIZAÇÃO
@@ -115,8 +132,8 @@ const Admin = {
   async loadMetricas() {
     try {
       const metricas = await AdminAPI.getMetricas();
-      const despesasTotal = Object.values(Admin.DESPESAS).reduce((s, v) => s + v, 0);
-      const lucroMensal = metricas.receitaMensal - despesasTotal;
+      const custoMensal = Admin.FINANCEIRO_PROJETO.custoMensalTotal;
+      const lucroMensal = metricas.receitaMensal - custoMensal;
 
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
@@ -138,14 +155,20 @@ const Admin = {
       }
       const margemPct = metricas.receitaMensal > 0
         ? Math.round((lucroMensal / metricas.receitaMensal) * 100) : 0;
-      set('kpi-lucro-sub', `Margem: ${margemPct}%`);
+      set('kpi-lucro-sub', lucroMensal >= 0 ? `Margem: ${margemPct}%` : `Custo est.: ${App.formatCurrency(custoMensal)}`);
 
       Admin._renderPlanosDist(metricas.distribuicaoPlanos);
       await Admin._renderDoencasStats();
 
     } catch (err) {
       console.error('[Admin] Erro ao carregar métricas:', err);
-      App.showToast('Erro ao carregar métricas.', 'error');
+      const isPermissao = err.code === 'permission-denied' ||
+        (err.message && (
+          err.message.toLowerCase().includes('permission') ||
+          err.message.toLowerCase().includes('insufficient') ||
+          err.message.toLowerCase().includes('permiss')
+        ));
+      App.showToast(isPermissao ? 'Erro ao carregar métricas: permissão negada no Firestore.' : 'Erro ao carregar métricas: ' + (err.message || ''), 'error');
     }
   },
 
@@ -235,22 +258,52 @@ const Admin = {
   },
 
   // ============================================================
-  // 2. FINANCEIRO
+  // 2. FINANCEIRO & PONTO DE EQUILÍBRIO
   // ============================================================
 
   async loadFinanceiro() {
     try {
       const metricas = await AdminAPI.getMetricas();
-      const D = Admin.DESPESAS;
-      const despesasTotal = Object.values(D).reduce((s, v) => s + v, 0);
+      const F = Admin.FINANCEIRO_PROJETO;
       const receitaBruta = metricas.receitaMensal;
-      const lucroMensal = receitaBruta - despesasTotal;
-      const margemPct = receitaBruta > 0 ? Math.round((lucroMensal / receitaBruta) * 100) : 0;
+      const custoMensal = F.custoMensalTotal;
+      const custoAnual = F.custoAnualTotal;
+      const lucroMensal = receitaBruta - custoMensal;
+      const lucroAnual = (receitaBruta * 12) - custoAnual;
 
       const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
 
-      set('fin-receita-bruta', App.formatCurrency(receitaBruta));
+      // Renderizar a tabela oficial completa de custos
+      Admin._renderTabelaCustos();
 
+      // Ponto de Equilíbrio (Break-Even Point)
+      const pctEquilibrio = custoMensal > 0 ? ((receitaBruta / custoMensal) * 100) : 0;
+      const pctEquilibrioFormatado = pctEquilibrio >= 100 ? pctEquilibrio.toFixed(1) : pctEquilibrio.toFixed(1);
+
+      set('be-custo-total', App.formatCurrency(custoMensal));
+      set('be-receita-real', App.formatCurrency(receitaBruta));
+
+      const assinantesPagos = (metricas.distribuicaoPlanos || [])
+        .filter(p => p.plano_id !== 1)
+        .reduce((sum, p) => sum + p.quantidade, 0);
+      set('be-receita-sub', `${assinantesPagos} assinante(s) pago(s)`);
+
+      set('be-progresso-pct', `${pctEquilibrioFormatado}%`);
+      const deficitVal = custoMensal - receitaBruta;
+      if (deficitVal > 0) {
+        set('be-deficit', `Déficit: -${App.formatCurrency(deficitVal)}`);
+      } else {
+        set('be-deficit', `Superávit: +${App.formatCurrency(Math.abs(deficitVal))}`);
+      }
+
+      set('be-progress-text', `${pctEquilibrioFormatado}% da meta de equilíbrio`);
+      const barEl = document.getElementById('be-progress-bar');
+      if (barEl) {
+        barEl.style.width = `${Math.min(100, Math.max(0, pctEquilibrio))}%`;
+      }
+
+      // Detalhamento de Receita por Plano
+      set('fin-receita-bruta', App.formatCurrency(receitaBruta));
       const elRecPorPlano = document.getElementById('fin-receita-por-plano');
       if (elRecPorPlano && metricas.distribuicaoPlanos) {
         const precos = { 1: 0, 2: 60.00, 3: 100.00, 4: 1000.00 };
@@ -261,7 +314,7 @@ const Admin = {
             <div class="finance-row">
               <span class="finance-row-label">
                 <span class="material-symbols-rounded" style="color:#e53935;">inventory_2</span>
-                ${p.plano} (${p.quantidade} × R$ ${preco.toFixed(2)})
+                ${p.plano} (${p.quantidade} × ${App.formatCurrency(preco)})
               </span>
               <span class="finance-row-value positive">${App.formatCurrency(receita)}</span>
             </div>
@@ -269,14 +322,9 @@ const Admin = {
         }).join('');
       }
 
-      set('fin-despesas-total', App.formatCurrency(despesasTotal));
-      set('fin-infra', `- ${App.formatCurrency(D.infra)}`);
-      set('fin-ia', `- ${App.formatCurrency(D.ia)}`);
-      set('fin-storage', `- ${App.formatCurrency(D.storage)}`);
-      set('fin-suporte', `- ${App.formatCurrency(D.suporte)}`);
-
+      // Demonstrativo Operacional
       set('fin-result-receita', App.formatCurrency(receitaBruta));
-      set('fin-result-despesas', `- ${App.formatCurrency(despesasTotal)}`);
+      set('fin-result-despesas', `- ${App.formatCurrency(custoMensal)}`);
 
       const elResultLucro = document.getElementById('fin-result-lucro');
       if (elResultLucro) {
@@ -285,21 +333,10 @@ const Admin = {
       }
 
       set('fin-anual', App.formatCurrency(receitaBruta * 12));
-      set('fin-lucro-anual', App.formatCurrency(lucroMensal * 12));
-
-      set('fin-margem-pct', `${margemPct}%`);
-      const elBar = document.getElementById('fin-margem-bar');
-      if (elBar) {
-        const clamp = Math.max(0, Math.min(100, margemPct));
-        setTimeout(() => { elBar.style.width = clamp + '%'; }, 100);
-        elBar.style.background = margemPct >= 30 ? '#16a34a' : margemPct >= 10 ? '#e53935' : '#dc2626';
-      }
-
-      const elDesc = document.getElementById('fin-margem-desc');
-      if (elDesc) {
-        if (margemPct >= 30) elDesc.textContent = '✓ Excelente — margem de lucro saudável.';
-        else if (margemPct >= 10) elDesc.textContent = '⚠ Regular — monitore as despesas operacionais.';
-        else elDesc.textContent = '✗ Baixa/Prejuízo — necessária revisão de custos.';
+      const elLucroAnual = document.getElementById('fin-lucro-anual');
+      if (elLucroAnual) {
+        elLucroAnual.textContent = `${lucroAnual >= 0 ? '+' : ''}${App.formatCurrency(lucroAnual)}`;
+        elLucroAnual.className = `finance-row-value ${lucroAnual >= 0 ? 'positive' : 'negative'}`;
       }
 
     } catch (err) {
@@ -308,8 +345,79 @@ const Admin = {
     }
   },
 
+  _renderTabelaCustos() {
+    const tbody = document.getElementById('admin-tabela-custos-body');
+    if (!tbody) return;
+
+    const F = Admin.FINANCEIRO_PROJETO;
+    const catIcons = {
+      'Infraestrutura Física': 'apartment',
+      'Equipamentos': 'devices',
+      'Software e Serviços': 'cloud_sync',
+      'Recursos Humanos': 'engineering',
+      'Marketing e Divulgação': 'campaign',
+    };
+
+    let rowsHtml = '';
+    let catAnterior = '';
+
+    F.itens.forEach(item => {
+      const ehNovaCat = item.categoria !== catAnterior;
+      catAnterior = item.categoria;
+
+      rowsHtml += `
+        <tr class="cost-row">
+          <td class="cost-col-cat">
+            ${ehNovaCat ? `
+              <div class="cost-cat-badge">
+                <span class="material-symbols-rounded">${catIcons[item.categoria] || 'folder'}</span>
+                <span>${item.categoria}</span>
+              </div>
+            ` : ''}
+          </td>
+          <td class="cost-col-item">
+            <span class="cost-item-text">${item.item}</span>
+          </td>
+          <td class="cost-col-num">
+            ${App.formatCurrency(item.mensal).replace('R$', '').trim()}
+          </td>
+          <td class="cost-col-num">
+            ${App.formatCurrency(item.anual).replace('R$', '').trim()}
+          </td>
+        </tr>
+      `;
+    });
+
+    // Subtotal
+    rowsHtml += `
+      <tr class="cost-row-subtotal">
+        <td colspan="2" style="font-weight:700; color:#0f172a;">Subtotal</td>
+        <td class="cost-col-num" style="font-weight:700; color:#0f172a;">${App.formatCurrency(F.subtotalMensal).replace('R$', '').trim()}</td>
+        <td class="cost-col-num" style="font-weight:700; color:#0f172a;">${App.formatCurrency(F.subtotalAnual).replace('R$', '').trim()}</td>
+      </tr>
+      <tr class="cost-row-contingencia">
+        <td class="cost-col-cat">
+          <div class="cost-cat-badge" style="background:#fef3c7; color:#b45309;">
+            <span class="material-symbols-rounded">shield</span>
+            <span>Reserva de Contingência</span>
+          </div>
+        </td>
+        <td class="cost-col-item">Imprevistos (10% do subtotal)</td>
+        <td class="cost-col-num" style="color:#b45309; font-weight:600;">${App.formatCurrency(F.contingenciaMensal).replace('R$', '').trim()}</td>
+        <td class="cost-col-num" style="color:#b45309; font-weight:600;">${App.formatCurrency(F.contingenciaAnual).replace('R$', '').trim()}</td>
+      </tr>
+      <tr class="cost-row-total">
+        <td colspan="2" style="font-weight:800; font-size:14px; color:#b71c1c;">TOTAL ESTIMADO</td>
+        <td class="cost-col-num" style="font-weight:800; font-size:14px; color:#b71c1c;">${App.formatCurrency(F.custoMensalTotal).replace('R$', '').trim()}</td>
+        <td class="cost-col-num" style="font-weight:800; font-size:14px; color:#b71c1c;">${App.formatCurrency(F.custoAnualTotal).replace('R$', '').trim()}</td>
+      </tr>
+    `;
+
+    tbody.innerHTML = rowsHtml;
+  },
+
   // ============================================================
-  // 3. USUÁRIOS
+  // 3. USUÁRIOS REAIS DO SISTEMA
   // ============================================================
 
   async loadUsuarios() {
@@ -317,69 +425,49 @@ const Admin = {
     const containerAss = document.getElementById('admin-assinaturas-list');
     if (!containerList) return;
 
-    containerList.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">Carregando usuários...</div>';
-    if (containerAss) containerAss.innerHTML = containerList.innerHTML;
+    containerList.innerHTML = '<tr><td colspan="5" style="padding:24px; text-align:center; color:#94a3b8;">Carregando usuários do banco de dados...</td></tr>';
 
     try {
       const usuarios = await AdminAPI.getUsuarios();
-      // Filtrar: remover admins e funcionários da lista de exibição
-      const naoAdmin = usuarios.filter(u => u.tipo !== 'admin' && u.tipo !== 'funcionario');
+      Admin._usuariosCache = usuarios || [];
 
-      const produtores = naoAdmin.filter(u => u.tipo === 'produtor').length;
-      const amadores = naoAdmin.filter(u => u.tipo === 'amador').length;
-      const empresas = naoAdmin.filter(u => u.tipo === 'empresa').length;
+      // Atualizar contadores KPIs com dados reais
+      const total = usuarios.length;
+      const produtores = usuarios.filter(u => u.tipo === 'produtor').length;
+      const amadores = usuarios.filter(u => u.tipo === 'amador').length;
+      const empresas = usuarios.filter(u => u.tipo === 'empresa').length;
+      const funcionarios = usuarios.filter(u => u.tipo === 'funcionario').length;
+      const admins = usuarios.filter(u => u.tipo === 'admin').length;
 
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      set('kpi-total-usuarios', total);
       set('kpi-produtores', produtores);
+      set('kpi-amadores', amadores);
       set('kpi-empresas', empresas);
-      set('badge-total-users', `${naoAdmin.length} usuário(s)`);
+      set('kpi-outros-sub', `${funcionarios} func. · ${admins} admin`);
+      set('badge-total-users', `${total} cadastrado(s)`);
 
-      if (!naoAdmin.length) {
-        containerList.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">Nenhum usuário cadastrado.</div>';
-        return;
-      }
+      // Renderizar tabela com lista completa inicial
+      Admin._renderUsuarios(Admin._usuariosCache);
 
-      const planoPill = (nome) => {
-        if (!nome || nome === 'Gratuito') return `<span class="plan-pill pill-free">Gratuito</span>`;
-        if (nome === 'Avançado') return `<span class="plan-pill pill-avancado">Avançado</span>`;
-        if (nome === 'Premium') return `<span class="plan-pill pill-premium">Premium</span>`;
-        return `<span class="plan-pill pill-empresa">Empresarial</span>`;
-      };
-
-      containerList.innerHTML = naoAdmin.map(u => `
-        <div class="user-table-row">
-          <div style="display:flex; align-items:center; flex:1; min-width:0;">
-            <div class="user-avatar-sm">${App.getInitials(u.nome)}</div>
-            <div class="user-info">
-              <div class="user-name">${u.nome}</div>
-              <div class="user-email">${u.email}</div>
-            </div>
-          </div>
-          ${planoPill(u.plano_nome)}
-        </div>
-      `).join('');
-
-      // Assinaturas
+      // Carregar Assinaturas Vinculadas reais
       const badgeAss = document.getElementById('badge-assinaturas');
       let assinaturasBrutas = [];
       try {
         const snap = await db.collection('assinaturas').get();
-        assinaturasBrutas = snap.docs.map(d => d.data());
-      } catch (e) { }
+        assinaturasBrutas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        console.warn('[Admin] Erro ao buscar assinaturas:', e.message);
+      }
 
-      const assinaturas = assinaturasBrutas.filter(a => {
-        const u = usuarios.find(u => u.id === a.usuario_id);
-        return u && u.tipo !== 'admin' && u.ativo;
-      });
-
-      if (badgeAss) badgeAss.textContent = `${assinaturas.length} ativa(s)`;
+      if (badgeAss) badgeAss.textContent = `${assinaturasBrutas.length} assinatura(s)`;
 
       if (containerAss) {
-        if (!assinaturas.length) {
-          containerAss.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">Nenhuma assinatura ativa</div>';
+        if (!assinaturasBrutas.length) {
+          containerAss.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">Nenhuma assinatura cadastrada</div>';
         } else {
-          const planosList = await AssinaturasAPI.listarPlanos();
-          containerAss.innerHTML = assinaturas.map(a => {
+          const planosList = PLANOS;
+          containerAss.innerHTML = assinaturasBrutas.map(a => {
             const user = usuarios.find(u => u.id === a.usuario_id);
             const plano = planosList.find(p => p.id === a.plano_id);
             const tipoBadge = a.tipo === 'anual'
@@ -389,12 +477,12 @@ const Admin = {
             return `
               <div class="user-table-row">
                 <div class="user-info" style="margin-left:0;">
-                  <div class="user-name">${user?.nome || '—'}</div>
-                  <div class="user-email">${plano?.nome || '—'} · ${venc}</div>
+                  <div class="user-name">${user?.nome || 'Usuário (' + (a.usuario_id || 'ID') + ')'}</div>
+                  <div class="user-email">${plano?.nome || 'Plano'} · ${venc}</div>
                 </div>
                 <div style="display:flex; gap:6px; align-items:center;">
                   ${tipoBadge}
-                  ${planoPill(plano?.nome)}
+                  ${Admin._planoPill(plano?.nome)}
                 </div>
               </div>
             `;
@@ -404,8 +492,141 @@ const Admin = {
 
     } catch (err) {
       console.error('[Admin] Erro ao carregar usuários:', err);
-      containerList.innerHTML = '<div style="padding:20px; text-align:center; color:#dc2626;">Erro ao carregar usuários.</div>';
+      const isPermissao = err.code === 'permission-denied' ||
+        (err.message && (
+          err.message.toLowerCase().includes('permission') ||
+          err.message.toLowerCase().includes('insufficient') ||
+          err.message.toLowerCase().includes('permiss')
+        ));
+
+      const msgToast = isPermissao
+        ? 'Erro ao carregar usuários: permissão negada no Firestore (Missing or insufficient permissions).'
+        : 'Erro ao carregar usuários: ' + (err.message || 'falha de comunicação com o banco.');
+
+      App.showToast(msgToast, 'error');
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      set('kpi-total-usuarios', '—');
+      set('kpi-produtores', '—');
+      set('kpi-amadores', '—');
+      set('kpi-empresas', '—');
+      set('kpi-outros-sub', 'Erro de permissão');
+      set('badge-total-users', 'Erro');
+
+      containerList.innerHTML = `
+        <tr>
+          <td colspan="5" style="padding:32px 16px; text-align:center; color:#dc2626;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <span class="material-symbols-rounded" style="font-size:36px; color:#dc2626;">lock</span>
+              <strong style="font-size:14px;">${msgToast}</strong>
+              <span style="font-size:12px; color:#64748b; max-width:440px;">
+                ${isPermissao
+                  ? 'As regras do Firestore (firestore.rules) precisam autorizar expressamente <code>allow list: if isAdmin();</code> na coleção de usuários para que o painel administrativo possa consultar a lista.'
+                  : 'Ocorreu uma falha ao consultar o banco de dados.'}
+              </span>
+            </div>
+          </td>
+        </tr>
+      `;
     }
+  },
+
+  filterUsuarios() {
+    const termo = (document.getElementById('admin-user-search')?.value || '').toLowerCase().trim();
+    const filtroTipo = document.getElementById('admin-filter-tipo')?.value || '';
+    const filtroPlano = document.getElementById('admin-filter-plano')?.value || '';
+
+    let filtrados = Admin._usuariosCache || [];
+
+    if (termo) {
+      filtrados = filtrados.filter(u =>
+        (u.nome && u.nome.toLowerCase().includes(termo)) ||
+        (u.email && u.email.toLowerCase().includes(termo))
+      );
+    }
+
+    if (filtroTipo) {
+      filtrados = filtrados.filter(u => u.tipo === filtroTipo);
+    }
+
+    if (filtroPlano) {
+      filtrados = filtrados.filter(u => (u.plano_nome || '').toLowerCase() === filtroPlano.toLowerCase());
+    }
+
+    Admin._renderUsuarios(filtrados);
+  },
+
+  _planoPill(nome) {
+    const n = (nome || '').toLowerCase();
+    if (!nome || n.includes('gratuito')) return `<span class="plan-pill pill-free">Gratuito</span>`;
+    if (n.includes('básico') || n.includes('basico') || n.includes('avançado') || n.includes('avancado')) {
+      return `<span class="plan-pill pill-avancado">Básico</span>`;
+    }
+    if (n.includes('premium')) return `<span class="plan-pill pill-premium">Premium</span>`;
+    return `<span class="plan-pill pill-empresa">Empresarial</span>`;
+  },
+
+  _renderUsuarios(lista) {
+    const tbody = document.getElementById('admin-usuarios-list');
+    if (!tbody) return;
+
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:32px; text-align:center; color:#94a3b8;">Nenhum usuário encontrado com os filtros selecionados.</td></tr>';
+      return;
+    }
+
+    const mapIconeTipo = {
+      'produtor': 'psychiatry',
+      'amador': 'potted_plant',
+      'empresa': 'corporate_fare',
+      'funcionario': 'badge',
+      'admin': 'shield_person',
+    };
+
+    tbody.innerHTML = lista.map(u => {
+      const iconeTipo = mapIconeTipo[u.tipo] || 'person';
+      const statusBadge = u.ativo
+        ? '<span class="status-badge status-active"><span class="status-dot"></span>Ativo</span>'
+        : '<span class="status-badge status-inactive"><span class="status-dot"></span>Inativo</span>';
+
+      return `
+        <tr class="user-row-item">
+          <!-- Usuário -->
+          <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="user-avatar-sm">${App.getInitials(u.nome)}</div>
+              <div style="min-width:0;">
+                <div class="user-name" title="${u.nome}">${u.nome}</div>
+                <div class="user-email" title="${u.email}">${u.email}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Tipo de Conta -->
+          <td>
+            <span class="account-type-badge type-${u.tipo || 'amador'}">
+              <span class="material-symbols-rounded">${iconeTipo}</span>
+              ${u.tipo_formatado || u.tipo}
+            </span>
+          </td>
+
+          <!-- Plano -->
+          <td>
+            ${Admin._planoPill(u.plano_nome)}
+          </td>
+
+          <!-- Data de Cadastro -->
+          <td style="color:#475569; font-size:12px; font-weight:500;">
+            ${u.data_cadastro || '—'}
+          </td>
+
+          <!-- Status -->
+          <td style="text-align:center;">
+            ${statusBadge}
+          </td>
+        </tr>
+      `;
+    }).join('');
   },
 
   // ============================================================

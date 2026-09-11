@@ -260,12 +260,7 @@ const Funcionarios = {
       }
     }
 
-    // Resetar checkboxes
-    document.getElementById('perm-fotos').checked = true;
-    document.getElementById('perm-diagnostico').checked = true;
-    document.getElementById('perm-historico').checked = true;
-    document.getElementById('perm-excluir').checked = false;
-    document.getElementById('perm-usuarios').checked = false;
+
 
     if (funcId) {
       // ── Modo edição ──────────────────────────────────────────────
@@ -287,11 +282,7 @@ const Funcionarios = {
       document.getElementById('func-cpf').value = func.cpf || '';
       document.getElementById('func-cargo').value = func.cargo || '';
       if (fazendaSelect && func.fazenda_id) fazendaSelect.value = func.fazenda_id;
-      document.getElementById('perm-fotos').checked = !!func.perm_fotos;
-      document.getElementById('perm-diagnostico').checked = !!func.perm_diagnostico;
-      document.getElementById('perm-historico').checked = !!func.perm_historico;
-      document.getElementById('perm-excluir').checked = !!func.perm_excluir;
-      document.getElementById('perm-usuarios').checked = !!func.perm_usuarios;
+
 
     } else {
       // ── Modo criação ─────────────────────────────
@@ -362,11 +353,7 @@ const Funcionarios = {
       cpf: document.getElementById('func-cpf').value.trim(),
       cargo: document.getElementById('func-cargo').value.trim() || null,
       fazenda_id: fazendaId,
-      perm_fotos: document.getElementById('perm-fotos').checked,
-      perm_diagnostico: document.getElementById('perm-diagnostico').checked,
-      perm_historico: document.getElementById('perm-historico').checked,
-      perm_excluir: document.getElementById('perm-excluir').checked,
-      perm_usuarios: document.getElementById('perm-usuarios').checked,
+
     };
 
     // Incluir senha apenas no cadastro
